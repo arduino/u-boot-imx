@@ -342,9 +342,14 @@ static int spl_load_fit_image(struct spl_load_info *info, ulong sector,
 #ifdef CONFIG_SPL_FIT_SIGNATURE
 	printf("## Checking hash(es) for Image %s ... ",
 	       fit_get_name(fit, node, NULL));
-	if (!fit_image_verify_with_data(fit, node,
-					 src, length))
+	if (!fit_image_verify_with_data(fit, node, src, length)) {
+#ifdef CONFIG_SPL_FIT_SIGNATURE_STRICT
+		puts("Invalid FIT signature found in a required image.\n");
+		hang();
+#else
 		return -EPERM;
+#endif
+	}
 	puts("OK\n");
 #endif
 
@@ -564,6 +569,19 @@ int spl_load_simple_fit(struct spl_image_info *spl_image,
 
 	if (count == 0)
 		return -EIO;
+
+#ifdef CONFIG_SPL_FIT_SIGNATURE_STRICT
+	int cfg_noffset = fit_conf_get_node(fit, NULL);
+	if (cfg_noffset >= 0) {
+		if (fit_config_verify(fit, cfg_noffset)) {
+			puts("Unable to verify the required FIT config.\n");
+			hang();
+		}
+	} else {
+		puts("SPL_FIT_SIGNATURE_STRICT needs a config node in FIT\n");
+		hang();
+	}
+#endif /* CONFIG_SPL_FIT_SIGNATURE_STRICT */
 
 	/* skip further processing if requested to enable load-only use cases */
 	if (spl_load_simple_fit_skip_processing())
