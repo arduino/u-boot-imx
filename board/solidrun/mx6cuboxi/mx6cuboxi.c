@@ -530,6 +530,9 @@ static bool is_rev_15_som(void)
 static bool has_emmc(void)
 {
 	struct mmc *mmc;
+	/* eMMC is only available on som rev >= 1.5 */
+	if (!is_rev_15_som())
+		return 0;
 	mmc = find_mmc_device(2);
 	if (!mmc)
 		return 0;
