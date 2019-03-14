@@ -274,7 +274,7 @@ get_cluster(fsdata *mydata, __u32 clustnum, __u8 *buffer, unsigned long size)
 			buffer += mydata->sect_size;
 			size -= mydata->sect_size;
 		}
-	} else {
+	} else if (size >= mydata->sect_size) {
 		idx = size / mydata->sect_size;
 		ret = disk_read(startsect, idx, buffer);
 		if (ret != idx) {
