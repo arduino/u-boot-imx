@@ -47,14 +47,11 @@
 #endif
 
 /*
- * If we have defined the OPTEE ram size and not OPTEE it means that we were
- * launched by OPTEE, because of that we shall skip all the low level
- * initialization since it was already done by ATF or OPTEE
+ * If OPTEE_SKIP_LOWLEVEL_INIT is flagged indicate CONFIG_SKIP_LOWLEVEL_INIT and
+ * subsequently skip over reserved a range of reserved low-level bit twiddling.
  */
-#if (CONFIG_OPTEE_TZDRAM_SIZE != 0)
-#ifndef CONFIG_OPTEE
+#ifdef CONFIG_OPTEE_SKIP_LOWLEVEL_INIT
 #define CONFIG_SKIP_LOWLEVEL_INIT
-#endif
 #endif
 
 #ifdef CONFIG_IMX_OPTEE
