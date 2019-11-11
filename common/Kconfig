@@ -948,6 +948,14 @@ config AVB_VERIFY
 	    * Helpers to access MMC, similar to drivers/fastboot/fb_mmc.c.
 	    * Helpers to alloc/init/free avb ops.
 
+config FIOVB
+	bool "Build Foundries.IO Verified Boot operations"
+	depends on PARTITION_UUIDS
+	depends on OPTEE
+	help
+	 This option enables compilation of Foundries.IO verified boot
+	 operations
+
 config SPL_HASH
 	bool # "Support hashing API (SHA1, SHA256, etc.)"
 	help
