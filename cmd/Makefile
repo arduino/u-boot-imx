@@ -195,6 +195,9 @@ obj-$(CONFIG_CMD_BLOB) += blob.o
 # Android Verified Boot 2.0
 obj-$(CONFIG_CMD_AVB) += avb.o
 
+# Foundries.IO Verified Boot
+obj-$(CONFIG_CMD_FIOVB) += fiovb.o
+
 obj-$(CONFIG_ARM) += arm/
 obj-$(CONFIG_RISCV) += riscv/
 obj-$(CONFIG_SANDBOX) += sandbox/
