@@ -18,4 +18,27 @@ enum bt_mode {
 };
 
 enum boot_device get_boot_device(void);
+
+#define M4_BOOT_REG		(SIM0_RBASE + 0x70)
+#define M4_BASE			(TCML_BASE)
+#define M4_SIZE			(SZ_128K + SZ_64K)
+#define M4_ENTRY_OFFSET		0x1004
+#define M4_WATERMARK_OFFSET	0x1000
+#define M4_WATERMARK(fw)						\
+	({								\
+		const char *__p = (const char *) (fw);			\
+		u32 __watermark = *(u32 *) (__p + M4_WATERMARK_OFFSET);	\
+		__watermark;						\
+	})
+
+#define M4_ENTRY(fw)							\
+	({								\
+		const char *__p = (const char *) (fw);			\
+		u32 __entry = *(u32 *) (__p + M4_ENTRY_OFFSET);		\
+		__entry;						\
+	})
+
+#define M4_FW_VALID(x) (((x) == 0x402000d1) || ((x) == 0x412000d1))
+
+
 #endif
