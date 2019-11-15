@@ -85,4 +85,14 @@ config FPGA_ZYNQPL
 	  Enable FPGA driver for loading bitstream in BIT and BIN format
 	  on Xilinx Zynq devices.
 
+config FPGA_IMX_M4
+	bool "Enable FPGA IMX M4 - boot/upgrade"
+	select FPGA
+	help
+	  Enable FPGA driver for loading a bitstream to an IMX M4 coprocessor.
+	  This allows the firmware to either be boot or upgraded and boot.
+	  Upgrade shall start if the SHA256 stored in FIOVB TA does not match the
+	  one presented in the FIT (or if FIOVB is not enabled, if the SHA256 of
+	  the image in QSPI is different from the one in the FIT).
+
 endmenu
