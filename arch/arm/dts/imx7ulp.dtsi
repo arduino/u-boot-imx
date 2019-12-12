@@ -64,9 +64,9 @@
 			linux,cma-default;
 		};
 
-		rpmsg_reserved: rpmsg@9FFF0000 {
+		rpmsg_reserved: rpmsg@9DF00000 {
 			no-map;
-			reg = <0x9FF00000 0x100000>;
+			reg = <0x9DF00000 0x100000>;
 		};
 
 	};
