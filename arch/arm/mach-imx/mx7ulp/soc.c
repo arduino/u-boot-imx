@@ -184,9 +184,11 @@ static void disable_wdog(u32 wdog_base)
 
 		while (!(readl(wdog_base + 0x00) & 0x800));
 	}
-	writel(0x0, (wdog_base + 0x0C)); /* Set WIN to 0 */
-	writel(0x400, (wdog_base + 0x08)); /* Set timeout to default 0x400 */
-	writel(0x120, (wdog_base + 0x00)); /* Disable it and set update */
+	dmb();
+	__raw_writel(0x0, wdog_base + 0x0C); /* Set WIN to 0 */
+	__raw_writel(0x400, wdog_base + 0x08); /* Set timeout to default 0x400 */
+	__raw_writel(0x120, wdog_base + 0x00); /* Disable it and set update */
+	dmb();
 
 	while (!(readl(wdog_base + 0x00) & 0x400));
 }
