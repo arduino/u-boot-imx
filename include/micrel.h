@@ -44,5 +44,6 @@ int ksz9031_phy_extended_write(struct phy_device *phydev, int devaddr,
 			       int regnum, u16 mode, u16 val);
 int ksz9031_phy_extended_read(struct phy_device *phydev, int devaddr,
 			      int regnum, u16 mode);
+int ksz9xx1_phy_get_id(struct phy_device *phydev);
 
 #endif
