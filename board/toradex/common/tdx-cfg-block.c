@@ -118,7 +118,7 @@ const char * const toradex_modules[] = {
 	[53] = "Apalis iMX8 QuadXPlus 2GB ECC IT",
 	[54] = "Apalis iMX8 DualXPlus 1GB",
 	[55] = "Verdin iMX8M Mini Quad 2GB Wi-Fi / BT IT",
-	[56] = "Verdin iMX8M Nano SoloLite 1GB", /* not currently on sale */
+	[56] = "Verdin iMX8M Nano Quad 1GB Wi-Fi / BT", /* not currently on sale */
 	[57] = "Verdin iMX8M Mini DualLite 1GB",
 };
 
@@ -378,7 +378,7 @@ static int get_cfgblock_interactive(void)
 	else if (is_cpu_type(MXC_CPU_IMX8MMDL))
 		tdx_hw_tag.prodid = VERDIN_IMX8MMDL;
 	else if (is_cpu_type(MXC_CPU_IMX8MN))
-		tdx_hw_tag.prodid = VERDIN_IMX8MNSL;
+		tdx_hw_tag.prodid = VERDIN_IMX8MNQ_WIFI_BT;
 	else if (is_cpu_type(MXC_CPU_IMX8QM)) {
 		if (it == 'y' || it == 'Y') {
 			if (wb == 'y' || wb == 'Y')
