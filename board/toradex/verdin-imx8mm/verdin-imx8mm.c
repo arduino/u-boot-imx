@@ -480,6 +480,17 @@ size_t display_count = ARRAY_SIZE(displays);
 
 int board_late_init(void)
 {
+#ifdef CONFIG_TDX_CFG_BLOCK
+	/*
+	 * If we have a valid config block and it says we are a module with
+	 * Wi-Fi/Bluetooth make sure we use the -wifi device tree.
+	 */
+	if (tdx_hw_tag.prodid == VERDIN_IMX8MMQ_WIFI_BT_IT)
+		env_set("variant", "wifi");
+	else
+		env_set("variant", "nonwifi");
+#endif
+
 	return 0;
 }
 

@@ -69,6 +69,8 @@
 #define CONFIG_SERVERIP		192.168.10.1
 #endif /* CONFIG_CMD_NET */
 
+#define FDT_FILE "fsl-imx8mm-verdin-${variant}-${fdt_board}.dtb"
+
 #define MEM_LAYOUT_ENV_SETTINGS \
 	"fdt_addr_r=0x44000000\0" \
 	"kernel_addr_r=0x42000000\0" \
@@ -80,6 +82,7 @@
 
 /* Enable Distro Boot */
 #ifndef CONFIG_SPL_BUILD
+#define CONFIG_BOOTCOMMAND "setenv fdtfile " FDT_FILE " && run distro_bootcmd;"
 #define BOOT_TARGET_DEVICES(func) \
 	func(MMC, mmc, 1) \
 	func(MMC, mmc, 0) \
@@ -98,7 +101,7 @@
 	"bootcmd_mfg=fastboot 0\0" \
 	"console=ttymxc0\0" \
 	"fdt_addr=0x43000000\0" \
-	"fdtfile=" CONFIG_DEFAULT_FDT_FILE "\0" \
+	"fdt_board=dev\0" \
 	"initrd_addr=0x43800000\0" \
 	"initrd_high=0xffffffffffffffff\0" \
 	"kernel_image=Image\0" \
