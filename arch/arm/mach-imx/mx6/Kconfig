@@ -623,6 +623,7 @@ config TARGET_MX6ULL_14X14_EVK
 	select DM
 	select DM_THERMAL
 	select MX6ULL
+	select SUPPORT_SPL
 	imply CMD_DM
 
 config TARGET_NITROGEN6X
