@@ -664,6 +664,7 @@ config TARGET_MX6ULL_14X14_EVK
 	select DM_THERMAL
 	select IMX_MODULE_FUSE
 	select OF_SYSTEM_SETUP
+	select SUPPORT_SPL
 	imply CMD_DM
 
 config TARGET_MYS_6ULX
