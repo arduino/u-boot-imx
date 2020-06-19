@@ -209,6 +209,7 @@
 				"fi; " \
 			"fi;\0" \
 
+#ifndef CONFIG_BOOTCOMMAND
 #define CONFIG_BOOTCOMMAND \
 	   "run findfdt;" \
 	   "run findtee;" \
@@ -223,6 +224,7 @@
 			   "fi; " \
 		   "fi; " \
 	   "else run netboot; fi"
+#endif
 #endif
 #else
 #define CONFIG_EXTRA_ENV_SETTINGS
