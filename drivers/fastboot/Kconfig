@@ -95,6 +95,28 @@ config FSL_FASTBOOT
 	help
 	  This enables FSL implementation for Android fastboot.
 
+config FSL_FASTBOOT_BOOTLOADER2
+	bool "Enable FSL fastboot flash support for separate SPL/u-boot"
+	depends on FASTBOOT_FLASH
+	help
+	  This enables FSL implementation for Android fastboot.
+
+config FSL_FASTBOOT_BOOTLOADER2_OFFSET
+	hex "2nd bootloader offset in 1k blocks"
+	depends on FSL_FASTBOOT_BOOTLOADER2
+	default 0x50 if ARCH_SUNXI
+	default 0x75 if ARCH_DAVINCI
+	default 0x8a if ARCH_MX6 || ARCH_MX7
+	default 0x100 if ARCH_UNIPHIER
+	default 0x140 if ARCH_MVEBU
+	default 0x200 if ARCH_SOCFPGA || ARCH_AT91
+	default 0x300 if ARCH_ZYNQ || ARCH_KEYSTONE || OMAP34XX || OMAP44XX || \
+		         OMAP54XX || AM33XX || AM43XX || ARCH_K3
+	default 0x4000 if ARCH_ROCKCHIP
+	help
+	  Offset on the MMC to load the second bootloader from
+	  in raw mode. Units: MMC sectors (1 sector = 512 bytes).
+
 config ANDROID_RECOVERY
 	bool "Enable the recovery boot function"
 	depends on FSL_FASTBOOT

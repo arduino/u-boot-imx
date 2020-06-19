@@ -46,6 +46,9 @@ enum {
 #endif
 	PTN_ALL_INDEX,
 	PTN_BOOTLOADER_INDEX,
+#ifdef CONFIG_FSL_FASTBOOT_BOOTLOADER2
+	PTN_BOOTLOADER2_INDEX,
+#endif
 };
 
 struct fastboot_ptentry g_ptable[MAX_PTN];
@@ -141,6 +144,7 @@ static int _fastboot_parts_load_from_ptable(void)
 	 * default is no partition, for emmc default user part, except emmc*/
 	int boot_partition = FASTBOOT_MMC_NONE_PARTITION_ID;
 	int user_partition = FASTBOOT_MMC_NONE_PARTITION_ID;
+	int last_bootloader_partition = PTN_BOOTLOADER_INDEX;
 
 	struct mmc *mmc;
 	struct blk_desc *dev_desc;
@@ -230,16 +234,36 @@ static int _fastboot_parts_load_from_ptable(void)
 	strcpy(ptable[PTN_BOOTLOADER_INDEX].name, FASTBOOT_PARTITION_BOOTLOADER);
 	ptable[PTN_BOOTLOADER_INDEX].start =
 				bootloader_mmc_offset() / dev_desc->blksz;
+#ifdef CONFIG_FSL_FASTBOOT_BOOTLOADER2
+	ptable[PTN_BOOTLOADER_INDEX].length =
+				(CONFIG_FSL_FASTBOOT_BOOTLOADER2_OFFSET * dev_desc->blksz - bootloader_mmc_offset())
+				/ dev_desc->blksz;
+#else
 	ptable[PTN_BOOTLOADER_INDEX].length =
 				 ANDROID_BOOTLOADER_SIZE / dev_desc->blksz;
+#endif
 	ptable[PTN_BOOTLOADER_INDEX].partition_id = boot_partition;
 	ptable[PTN_BOOTLOADER_INDEX].flags = FASTBOOT_PTENTRY_FLAGS_UNERASEABLE;
 	strcpy(ptable[PTN_BOOTLOADER_INDEX].fstype, "raw");
 
+#ifdef CONFIG_FSL_FASTBOOT_BOOTLOADER2
+	/* Bootloader2 (u-boot binary when SPL is separate) */
+	strcpy(ptable[PTN_BOOTLOADER2_INDEX].name, FASTBOOT_PARTITION_BOOTLOADER2);
+	ptable[PTN_BOOTLOADER2_INDEX].start =
+				(CONFIG_FSL_FASTBOOT_BOOTLOADER2_OFFSET * dev_desc->blksz) / dev_desc->blksz;
+	ptable[PTN_BOOTLOADER2_INDEX].length =
+				(ANDROID_BOOTLOADER_SIZE - (CONFIG_FSL_FASTBOOT_BOOTLOADER2_OFFSET * dev_desc->blksz))
+				/ dev_desc->blksz;
+	ptable[PTN_BOOTLOADER2_INDEX].partition_id = boot_partition;
+	ptable[PTN_BOOTLOADER2_INDEX].flags = FASTBOOT_PTENTRY_FLAGS_UNERASEABLE;
+	strcpy(ptable[PTN_BOOTLOADER2_INDEX].fstype, "raw");
+	last_bootloader_partition = PTN_BOOTLOADER2_INDEX;
+#endif
+
 	int tbl_idx;
 	int part_idx = 1;
 	int ret;
-	for (tbl_idx = PTN_BOOTLOADER_INDEX + 1; tbl_idx < MAX_PTN; tbl_idx++) {
+	for (tbl_idx = last_bootloader_partition + 1; tbl_idx < MAX_PTN; tbl_idx++) {
 		ret = _fastboot_parts_add_ptable_entry(tbl_idx,
 				part_idx++,
 				user_partition,
@@ -327,6 +351,11 @@ bool fastboot_parts_is_raw(struct fastboot_ptentry *ptn)
 		if (!strncmp(ptn->name, FASTBOOT_PARTITION_BOOTLOADER,
 			strlen(FASTBOOT_PARTITION_BOOTLOADER)))
 			return true;
+#ifdef CONFIG_FSL_FASTBOOT_BOOTLOADER2
+		if (!strncmp(ptn->name, FASTBOOT_PARTITION_BOOTLOADER2,
+			strlen(FASTBOOT_PARTITION_BOOTLOADER2)))
+			return true;
+#endif
 #ifdef CONFIG_ANDROID_AB_SUPPORT
 		else if (!strncmp(ptn->name, FASTBOOT_PARTITION_GPT,
 			strlen(FASTBOOT_PARTITION_GPT)) ||
