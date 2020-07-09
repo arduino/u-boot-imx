@@ -11,13 +11,6 @@
 
 DECLARE_GLOBAL_DATA_PTR;
 
-int dram_init(void)
-{
-	gd->ram_size = get_ram_size((void *)PHYS_SDRAM, PHYS_SDRAM_SIZE);
-
-	return 0;
-}
-
 #if IS_ENABLED(CONFIG_FEC_MXC)
 static int setup_fec(void)
 {
