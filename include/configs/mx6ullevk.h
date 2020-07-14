@@ -228,6 +228,9 @@
 #endif
 #else
 #define CONFIG_EXTRA_ENV_SETTINGS
+
+/* FIT load address for RAM boot */
+#define CONFIG_SPL_LOAD_FIT_ADDRESS	CONFIG_LOADADDR
 #endif /* CONFIG_SPL_BUILD */
 
 /* Miscellaneous configurable options */
