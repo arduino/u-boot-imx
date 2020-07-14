@@ -77,7 +77,11 @@ u32 spl_boot_device(void)
 	 * BOOT_MODE - see IMX6DQRM Table 8-1
 	 */
 	if (((bmode >> 24) & 0x03) == 0x01) /* Serial Downloader */
+#ifdef CONFIG_SPL_RAM_DEVICE
+		return BOOT_DEVICE_RAM;
+#else
 		return BOOT_DEVICE_BOARD;
+#endif
 
 	/*
 	 * The above method does not detect that the boot ROM used
@@ -89,7 +93,11 @@ u32 spl_boot_device(void)
 	 * assumes that SPL did not (yet) initialize the USB PHY...
 	 */
 	if (is_usbotg_phy_active())
+#ifdef CONFIG_SPL_RAM_DEVICE
+		return BOOT_DEVICE_RAM;
+#else
 		return BOOT_DEVICE_BOARD;
+#endif
 
 	/* BOOT_CFG1[7:4] - see IMX6DQRM Table 8-8 */
 	switch ((reg & IMX6_BMODE_MASK) >> IMX6_BMODE_SHIFT) {
