@@ -168,7 +168,7 @@
 #define IMX8MM_CLK_PCIE2_PHY			153
 #define IMX8MM_CLK_PCIE2_AUX			154
 #define IMX8MM_CLK_ECSPI3			155
-#define IMX8MM_CLK_PDM				156
+#define IMX8MM_CLK_SAI2_SRC                     156
 #define IMX8MM_CLK_VPU_H1			157
 #define IMX8MM_CLK_CLKO1			158
 
@@ -249,5 +249,6 @@
 #define IMX8MM_CLK_GIC				229
 
 #define IMX8MM_CLK_END				230
+#define IMX8MM_CLK_SAI2_DIV                     339
 
 #endif
