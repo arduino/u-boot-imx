@@ -1,36 +1,48 @@
 // SPDX-License-Identifier: GPL-2.0+
 /*
- * Copyright 2019 Toradex
+ * Copyright 2018-2019 Toradex
  */
-
 #include <common.h>
 #include <cpu_func.h>
-#include <init.h>
-
-#include <asm/arch/clock.h>
-#include <asm/arch/imx8-pins.h>
-#include <asm/arch/iomux.h>
-#include <asm/arch/sci/sci.h>
-#include <asm/arch/sys_proto.h>
-#include <asm/gpio.h>
-#include <asm/io.h>
 #include <env.h>
 #include <errno.h>
+#include <init.h>
 #include <linux/libfdt.h>
+#include <fsl_esdhc_imx.h>
+#include <fdt_support.h>
+
+#include <asm/io.h>
+#include <asm/gpio.h>
+#include <asm/arch/clock.h>
+#include <asm/arch-imx8/sci/sci.h>
+#include <asm/arch/imx8-pins.h>
+#include <asm/arch/snvs_security_sc.h>
+#include <asm/arch/iomux.h>
+#include <asm/arch/sys_proto.h>
+
+#include <power-domain.h>
+#include <usb.h>
 
 #include "../common/tdx-cfg-block.h"
 
 DECLARE_GLOBAL_DATA_PTR;
 
-#define UART_PAD_CTRL	((SC_PAD_CONFIG_OUT_IN << PADRING_CONFIG_SHIFT) | \
-			 (SC_PAD_ISO_OFF << PADRING_LPCONFIG_SHIFT) | \
-			 (SC_PAD_28FDSOI_DSE_DV_HIGH << PADRING_DSE_SHIFT) | \
-			 (SC_PAD_28FDSOI_PS_PU << PADRING_PULL_SHIFT))
+#define ESDHC_PAD_CTRL	((SC_PAD_CONFIG_NORMAL << PADRING_CONFIG_SHIFT) | (SC_PAD_ISO_OFF << PADRING_LPCONFIG_SHIFT) \
+						| (SC_PAD_28FDSOI_DSE_DV_HIGH << PADRING_DSE_SHIFT) | (SC_PAD_28FDSOI_PS_PU << PADRING_PULL_SHIFT))
+
+#define ESDHC_CLK_PAD_CTRL	((SC_PAD_CONFIG_OUT_IN << PADRING_CONFIG_SHIFT) | (SC_PAD_ISO_OFF << PADRING_LPCONFIG_SHIFT) \
+						| (SC_PAD_28FDSOI_DSE_DV_HIGH << PADRING_DSE_SHIFT) | (SC_PAD_28FDSOI_PS_PU << PADRING_PULL_SHIFT))
+
+#define GPIO_PAD_CTRL	((SC_PAD_CONFIG_NORMAL << PADRING_CONFIG_SHIFT) | (SC_PAD_ISO_OFF << PADRING_LPCONFIG_SHIFT) \
+						| (SC_PAD_28FDSOI_DSE_DV_HIGH << PADRING_DSE_SHIFT) | (SC_PAD_28FDSOI_PS_PU << PADRING_PULL_SHIFT))
+
+#define UART_PAD_CTRL	((SC_PAD_CONFIG_OUT_IN << PADRING_CONFIG_SHIFT) | (SC_PAD_ISO_OFF << PADRING_LPCONFIG_SHIFT) \
+						| (SC_PAD_28FDSOI_DSE_DV_HIGH << PADRING_DSE_SHIFT) | (SC_PAD_28FDSOI_PS_PU << PADRING_PULL_SHIFT))
 
 static iomux_cfg_t uart3_pads[] = {
 	SC_P_FLEXCAN2_RX | MUX_MODE_ALT(2) | MUX_PAD_CTRL(UART_PAD_CTRL),
 	SC_P_FLEXCAN2_TX | MUX_MODE_ALT(2) | MUX_PAD_CTRL(UART_PAD_CTRL),
-	/* Transceiver FORCEOFF# signal, mux to use pull-up */
+	/* Transceiver FORCEOFF# signal, mux to use pullup */
 	SC_P_QSPI0B_DQS | MUX_MODE_ALT(4) | MUX_PAD_CTRL(UART_PAD_CTRL),
 };
 
@@ -41,43 +53,41 @@ static void setup_iomux_uart(void)
 
 int board_early_init_f(void)
 {
-	sc_pm_clock_rate_t rate;
-	sc_err_t err = 0;
+	sc_pm_clock_rate_t rate = SC_80MHZ;
+	int ret;
 
 	/*
 	 * This works around that having only UART3 up the baudrate is 1.2M
 	 * instead of 115.2k. Set UART0 clock root to 80 MHz
 	 */
-	rate = 80000000;
-	err = sc_pm_set_clock_rate(-1, SC_R_UART_0, SC_PM_CLK_PER, &rate);
-	if (err != SC_ERR_NONE)
-		return 0;
+	ret = sc_pm_setup_uart(SC_R_UART_0, rate);
+	if (ret)
+		return ret;
 
-	/* Set UART3 clock root to 80 MHz and enable it */
-	rate = SC_80MHZ;
-	err = sc_pm_setup_uart(SC_R_UART_3, rate);
-	if (err != SC_ERR_NONE)
-		return 0;
+	/* Set UART0 clock root to 80 MHz */
+	ret = sc_pm_setup_uart(SC_R_UART_3, rate);
+	if (ret)
+		return ret;
 
 	setup_iomux_uart();
 
 	return 0;
 }
 
-#if IS_ENABLED(CONFIG_DM_GPIO)
-static void board_gpio_init(void)
-{
-	/* TODO */
-}
-#else
-static inline void board_gpio_init(void) {}
-#endif
 
-#if IS_ENABLED(CONFIG_FEC_MXC)
+#ifdef CONFIG_FEC_MXC
 #include <miiphy.h>
 
 int board_phy_config(struct phy_device *phydev)
 {
+	phy_write(phydev, MDIO_DEVAD_NONE, 0x1d, 0x1f);
+	phy_write(phydev, MDIO_DEVAD_NONE, 0x1e, 0x8);
+
+	phy_write(phydev, MDIO_DEVAD_NONE, 0x1d, 0x00);
+	phy_write(phydev, MDIO_DEVAD_NONE, 0x1e, 0x82ee);
+	phy_write(phydev, MDIO_DEVAD_NONE, 0x1d, 0x05);
+	phy_write(phydev, MDIO_DEVAD_NONE, 0x1e, 0x100);
+
 	if (phydev->drv->config)
 		phydev->drv->config(phydev);
 
@@ -85,9 +95,44 @@ int board_phy_config(struct phy_device *phydev)
 }
 #endif
 
+#undef CONFIG_MXC_GPIO /* TODO */
+#ifdef CONFIG_MXC_GPIO
+#define IOEXP_RESET IMX_GPIO_NR(1, 1)
+
+static iomux_cfg_t board_gpios[] = {
+	SC_P_SPI2_SDO | MUX_MODE_ALT(4) | MUX_PAD_CTRL(GPIO_PAD_CTRL),
+	SC_P_ENET0_REFCLK_125M_25M | MUX_MODE_ALT(4) | MUX_PAD_CTRL(GPIO_PAD_CTRL),
+};
+
+static void board_gpio_init(void)
+{
+	int ret;
+	struct gpio_desc desc;
+
+	ret = dm_gpio_lookup_name("gpio@1a_3", &desc);
+	if (ret)
+		return;
+
+	ret = dm_gpio_request(&desc, "bb_per_rst_b");
+	if (ret)
+		return;
+
+	dm_gpio_set_dir_flags(&desc, GPIOD_IS_OUT);
+	dm_gpio_set_value(&desc, 0);
+	udelay(50);
+	dm_gpio_set_value(&desc, 1);
+
+	imx8_iomux_setup_multiple_pads(board_gpios, ARRAY_SIZE(board_gpios));
+
+	/* enable i2c port expander assert reset line */
+	gpio_request(IOEXP_RESET, "ioexp_rst");
+	gpio_direction_output(IOEXP_RESET, 1);
+}
+#endif
+
 int checkboard(void)
 {
-	puts("Model: Toradex Colibri iMX8X\n");
+	puts("Board: Colibri iMX8QXP \n");
 
 	build_info();
 	print_bootinfo();
@@ -95,11 +140,62 @@ int checkboard(void)
 	return 0;
 }
 
+/* Only Enable USB3 resources currently */
+int board_usb_init(int index, enum usb_init_type init)
+{
+	struct power_domain pd;
+	int ret = 0;
+
+	/* Power on usb */
+	if (!power_domain_lookup_name("conn_usb2", &pd)) {
+		ret = power_domain_on(&pd);
+		if (ret)
+			printf("conn_usb2 Power up failed! (error = %d)\n", ret);
+	}
+
+	if (!power_domain_lookup_name("conn_usb2_phy", &pd)) {
+		ret = power_domain_on(&pd);
+		if (ret)
+			printf("conn_usb2_phy Power up failed! (error = %d)\n", ret);
+	}
+
+	return ret;
+}
+
 int board_init(void)
 {
+#ifdef CONFIG_MXC_GPIO
 	board_gpio_init();
+#endif
+
+#ifdef CONFIG_SNVS_SEC_SC_AUTO
+	{
+		int ret = snvs_security_sc_init();
+
+		if (ret)
+			return ret;
+	}
+#endif
 
 	return 0;
+}
+
+void board_quiesce_devices(void)
+{
+	const char *power_on_devices[] = {
+		"dma_lpuart3",
+
+		/* HIFI DSP boot */
+		"audio_sai0",
+		"audio_ocram",
+	};
+
+	power_off_pd_devices(power_on_devices, ARRAY_SIZE(power_on_devices));
+}
+
+void detail_board_ddr_info(void)
+{
+	puts("\nDDR    ");
 }
 
 /*
@@ -107,16 +203,18 @@ int board_init(void)
  */
 void reset_cpu(ulong addr)
 {
-	/* TODO */
+	sc_pm_reboot(-1, SC_PM_RESET_TYPE_COLD);
+	while(1);
+
 }
 
-#if defined(CONFIG_OF_LIBFDT) && defined(CONFIG_OF_BOARD_SETUP)
+#ifdef CONFIG_OF_BOARD_SETUP
 int ft_board_setup(void *blob, bd_t *bd)
 {
 	return ft_common_board_setup(blob, bd);
 }
 #endif
-
+void board_late_mmc_env_init() {}
 int board_mmc_get_env_dev(int devno)
 {
 	return devno;
@@ -130,5 +228,24 @@ int board_late_init(void)
 	env_set("board_rev", "v1.0");
 #endif
 
+#ifdef CONFIG_AHAB_BOOT
+	env_set("sec_boot", "yes");
+#else
+	env_set("sec_boot", "no");
+#endif
+
+#ifdef CONFIG_ENV_IS_IN_MMC
+	board_late_mmc_env_init();
+#endif
+
 	return 0;
 }
+
+#ifdef CONFIG_FSL_FASTBOOT
+#ifdef CONFIG_ANDROID_RECOVERY
+int is_recovery_key_pressing(void)
+{
+	return 0; /*TODO*/
+}
+#endif /*CONFIG_ANDROID_RECOVERY*/
+#endif /*CONFIG_FSL_FASTBOOT*/

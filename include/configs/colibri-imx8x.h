@@ -6,17 +6,14 @@
 #ifndef __COLIBRI_IMX8X_H
 #define __COLIBRI_IMX8X_H
 
-#include <asm/arch/imx-regs.h>
 #include <linux/sizes.h>
+#include <asm/arch/imx-regs.h>
 
 #define CONFIG_REMAKE_ELF
 
-#define CONFIG_DISPLAY_BOARDINFO_LATE
-
-#define CONFIG_SYS_FSL_ESDHC_ADDR	0
-#define USDHC1_BASE_ADDR		0x5b010000
-#define USDHC2_BASE_ADDR		0x5b020000
-#define CONFIG_SUPPORT_EMMC_BOOT	/* eMMC specific */
+#define CONFIG_SYS_FSL_ESDHC_ADDR       0
+#define USDHC1_BASE_ADDR                0x5B010000
+#define USDHC2_BASE_ADDR                0x5B020000
 
 #define CONFIG_ENV_OVERWRITE
 
@@ -50,44 +47,29 @@
 		"${m4_0_image}\0" \
 	"m4boot_0=run loadm4image_0; dcache flush; bootaux ${loadaddr} 0\0" \
 
-#define MFG_NAND_PARTITION ""
-
 #define BOOT_TARGET_DEVICES(func) \
 	func(MMC, mmc, 1) \
 	func(MMC, mmc, 0) \
+	func(USB, usb, 0) \
 	func(DHCP, dhcp, na)
 #include <config_distro_bootcmd.h>
-#undef BOOTENV_RUN_NET_USB_START
-#define BOOTENV_RUN_NET_USB_START ""
 
-#define CONFIG_MFG_ENV_SETTINGS \
-	"mfgtool_args=setenv bootargs console=${console},${baudrate} " \
-		"rdinit=/linuxrc g_mass_storage.stall=0 " \
-		"g_mass_storage.removable=1 g_mass_storage.idVendor=0x066F " \
-		"g_mass_storage.idProduct=0x37FF " \
-		"g_mass_storage.iSerialNumber=\"\" " MFG_NAND_PARTITION \
-		"${vidargs} clk_ignore_unused\0" \
-	"initrd_addr=0x83800000\0" \
-	"initrd_high=0xffffffff\0" \
-	"bootcmd_mfg=run mfgtool_args;booti ${loadaddr} ${initrd_addr} " \
-		"${fdt_addr};\0" \
+#define FDT_FILE			"fsl-imx8qxp-colibri-eval-v3.dtb"
 
+#include <config_distro_bootcmd.h>
 /* Initial environment variables */
 #define CONFIG_EXTRA_ENV_SETTINGS \
-	AHAB_ENV \
 	BOOTENV \
-	CONFIG_MFG_ENV_SETTINGS \
+	AHAB_ENV \
 	M4_BOOT_ENV \
 	MEM_LAYOUT_ENV_SETTINGS \
 	"boot_file=Image\0" \
-	"console=ttyLP3 earlycon\0" \
+	"console=ttyLP3,115200 earlycon=lpuart32,0x5a090000,115200\0" \
 	"fdt_addr=0x83000000\0"	\
-	"fdt_file=fsl-imx8qxp-colibri-dsihdmi-eval-v3.dtb\0" \
-	"fdtfile=fsl-imx8qxp-colibri-dsihdmi-eval-v3.dtb\0" \
+	"fdtfile=" FDT_FILE "\0" \
 	"finduuid=part uuid mmc ${mmcdev}:2 uuid\0" \
 	"image=Image\0" \
 	"initrd_addr=0x83800000\0" \
-	"initrd_high=0xffffffffffffffff\0" \
 	"mmcargs=setenv bootargs console=${console},${baudrate} " \
 		"root=PARTUUID=${uuid} rootwait " \
 	"mmcdev=" __stringify(CONFIG_SYS_MMC_ENV_DEV) "\0" \
@@ -100,6 +82,7 @@
 		"${fdt_addr}\0" \
 	"panel=NULL\0" \
 	"script=boot.scr\0" \
+	"setup=run mmcargs\0" \
 	"update_uboot=askenv confirm Did you load u-boot-dtb.imx (y/N)?; " \
 		"if test \"$confirm\" = \"y\"; then " \
 		"setexpr blkcnt ${filesize} + 0x1ff && setexpr blkcnt " \
@@ -116,6 +99,8 @@
 
 #define CONFIG_SYS_MEMTEST_START	0x88000000
 #define CONFIG_SYS_MEMTEST_END		0x89000000
+
+#define CONFIG_SYS_MMC_IMG_LOAD_PART	1
 
 /* Environment in eMMC, before config block at the end of 1st "boot sector" */
 #define CONFIG_SYS_MMC_ENV_DEV		0	/* USDHC1 eMMC */
@@ -151,7 +136,49 @@
 /* Generic Timer Definitions */
 #define COUNTER_FREQUENCY		8000000	/* 8MHz */
 
-#define BOOTAUX_RESERVED_MEM_BASE 0x88000000
-#define BOOTAUX_RESERVED_MEM_SIZE SZ_128M /* Reserve from second 128MB */
+/* USB Config */
+#define CONFIG_USBD_HS
+
+#define CONFIG_CMD_USB_MASS_STORAGE
+#define CONFIG_USB_GADGET_MASS_STORAGE
+#define CONFIG_USB_FUNCTION_MASS_STORAGE
+
+#define CONFIG_USB_MAX_CONTROLLER_COUNT 2
+
+/* USB OTG controller configs */
+#ifdef CONFIG_USB_EHCI_HCD
+#define CONFIG_USB_HOST_ETHER
+#define CONFIG_USB_ETHER_ASIX
+#define CONFIG_MXC_USB_PORTSC		(PORT_PTS_UTMI | PORT_PTS_PTW)
+#endif
+
+/* Networking */
+#define CONFIG_FEC_ENET_DEV 0
+
+#if (CONFIG_FEC_ENET_DEV == 0)
+#define IMX_FEC_BASE			0x5B040000
+#define CONFIG_FEC_MXC_PHYADDR          0x0
+#define CONFIG_ETHPRIME                 "eth0"
+#elif (CONFIG_FEC_ENET_DEV == 1)
+#define IMX_FEC_BASE			0x5B050000
+#define CONFIG_FEC_MXC_PHYADDR          0x1
+#define CONFIG_ETHPRIME                 "eth1"
+#endif
+
+#define CONFIG_FEC_XCV_TYPE		RGMII
+#define FEC_QUIRK_ENET_MAC
+#define PHY_ANEG_TIMEOUT 20000
+
+#ifdef CONFIG_DM_VIDEO
+#define CONFIG_VIDEO_LOGO
+#define CONFIG_SPLASH_SCREEN
+#define CONFIG_SPLASH_SCREEN_ALIGN
+#define CONFIG_CMD_BMP
+#define CONFIG_BMP_16BPP
+#define CONFIG_BMP_24BPP
+#define CONFIG_BMP_32BPP
+#define CONFIG_VIDEO_BMP_RLE8
+#define CONFIG_VIDEO_BMP_LOGO
+#endif
 
 #endif /* __COLIBRI_IMX8X_H */
