@@ -2,6 +2,32 @@
 /*
  * Copyright 2019 Toradex AG
  */
+/ {
+	aliases {
+		usbhost1 = &usbh3;
+		usbgadget0 = &usbg1;
+	};
+
+	usbh3: usbh3 {
+		compatible = "Cadence,usb3-host";
+		dr_mode = "host";
+		cdns3,usb = <&usbotg3>;
+		status = "okay";
+	};
+
+	usbg1: usbg1 {
+		compatible = "fsl,imx27-usb-gadget";
+		dr_mode = "peripheral";
+		chipidea,usb = <&usbotg1>;
+		status = "okay";
+		u-boot,dm-pre-proper;
+	};
+};
+
+&{/imx8qm-pm} {
+
+	u-boot,dm-pre-proper;
+};
 
 &mu {
 	u-boot,dm-pre-proper;
@@ -55,6 +81,10 @@
 	u-boot,dm-pre-proper;
 };
 
+&pd_dma_lpuart0 {
+	u-boot,dm-pre-proper;
+};
+
 &pd_dma_lpuart1 {
 	u-boot,dm-pre-proper;
 };
@@ -72,6 +102,22 @@
 };
 
 &pd_conn_sdch2 {
+	u-boot,dm-pre-proper;
+};
+
+&pd_conn_usbotg0 {
+	u-boot,dm-pre-proper;
+};
+
+&pd_conn_usbotg0_phy {
+	u-boot,dm-pre-proper;
+};
+
+&pd_conn_usb2 {
+	u-boot,dm-pre-proper;
+};
+
+&pd_conn_usb2_phy {
 	u-boot,dm-pre-proper;
 };
 
@@ -123,6 +169,31 @@
 	u-boot,dm-pre-proper;
 };
 
+/* USB */
+&usbmisc1 {
+	u-boot,dm-pre-proper;
+};
+
+&usbphy1 {
+	u-boot,dm-pre-proper;
+};
+
+&usbotg1 {
+	u-boot,dm-pre-proper;
+};
+
+&usbphynop1 {
+	compatible = "cdns,usb3-phy";
+	reg = <0x0 0x5B160000 0x0 0x40000>;
+	#phy-cells = <0>;
+	u-boot,dm-pre-proper;
+};
+
+&usbotg3 {
+	phys = <&usbphynop1>;
+	u-boot,dm-pre-proper;
+};
+
 &usdhc1 {
 	u-boot,dm-pre-proper;
 };
@@ -132,5 +203,9 @@
 };
 
 &usdhc3 {
+	u-boot,dm-pre-proper;
+};
+
+&wu {
 	u-boot,dm-pre-proper;
 };
