@@ -596,6 +596,14 @@ config FIOVB
 	 This option enables compilation of Foundries.IO verified boot
 	 operations
 
+config SPL_FIOVB
+	bool "Build Foundries.IO Verified Boot operations"
+	depends on PARTITION_UUIDS
+	depends on OPTEE
+	help
+	 This option enables compilation of Foundries.IO verified boot
+	 operations
+
 config SPL_HASH
 	bool # "Support hashing API (SHA1, SHA256, etc.)"
 	help
