@@ -18,6 +18,44 @@
 		bootargs = "console=ttyLP1,115200 earlycon=lpuart32,0x5a070000,115200";
 		stdout-path = &lpuart1;
 	};
+
+	regulators {
+		compatible = "simple-bus";
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		reg_usb_otg1_vbus: regulator@0 {
+			compatible = "regulator-fixed";
+			reg = <0>;
+			pinctrl-0 = <&pinctrl_gpio_usbo1_en>;
+			regulator-name = "usb_otg1_vbus";
+			regulator-min-microvolt = <5000000>;
+			regulator-max-microvolt = <5000000>;
+			gpio = <&gpio4 3 GPIO_ACTIVE_HIGH>;
+			enable-active-high;
+		}
+;
+		reg_usb_host_vbus: regulator-usb-host-vbus {
+			compatible = "regulator-fixed";
+			pinctrl-names = "default";
+			pinctrl-0 = <&pinctrl_gpio_usbh_en>;
+			regulator-min-microvolt = <5000000>;
+			regulator-max-microvolt = <5000000>;
+			enable-active-high;
+			/* Apalis USBH_EN */
+			gpio = <&gpio4 4 GPIO_ACTIVE_HIGH>;
+		};
+
+		reg_usdhc2_vmmc: usdhc2_vmmc {
+			compatible = "regulator-fixed";
+			regulator-name = "sw-3p3-sd1";
+			regulator-min-microvolt = <3300000>;
+			regulator-max-microvolt = <3300000>;
+			gpio = <&gpio4 7 GPIO_ACTIVE_HIGH>;
+			enable-active-high;
+		};
+
+	};
 };
 
 &iomuxc {
@@ -29,8 +67,6 @@
 		    <&pinctrl_gpio_keys>, <&pinctrl_gpio_pwm0>,
 		    <&pinctrl_gpio_pwm1>, <&pinctrl_gpio_pwm2>,
 		    <&pinctrl_gpio_pwm3>, <&pinctrl_gpio_pwm_bkl>,
-		    <&pinctrl_gpio_usbh_en>, <&pinctrl_gpio_usbh_oc_n>,
-		    <&pinctrl_gpio_usbo1_en>, <&pinctrl_gpio_usbo1_oc_n>,
 		    <&pinctrl_lpuart1ctrl>, <&pinctrl_lvds0_i2c0_gpio>,
 		    <&pinctrl_lvds1_i2c0_gpios>, <&pinctrl_mipi_dsi_0_1_en>,
 		    <&pinctrl_mipi_dsi1_gpios>, <&pinctrl_mlb_gpios>,
@@ -402,28 +438,28 @@
 		/* Apalis USBH_EN */
 		pinctrl_gpio_usbh_en: gpiousbhen {
 			fsl,pins = <
-				SC_P_USB_SS3_TC1_LSIO_GPIO4_IO04	0x06000060
+				SC_P_USB_SS3_TC1_LSIO_GPIO4_IO04	0x00000021
 			>;
 		};
 
 		/* Apalis USBH_OC# */
 		pinctrl_gpio_usbh_oc_n: gpiousbhocn {
 			fsl,pins = <
-				SC_P_USB_SS3_TC3_LSIO_GPIO4_IO06	0x06000060
+				SC_P_USB_SS3_TC3_LSIO_GPIO4_IO06	0x04000021
 			>;
 		};
 
 		/* Apalis USBO1_EN */
 		pinctrl_gpio_usbo1_en: gpiousbo1en {
 			fsl,pins = <
-				SC_P_USB_SS3_TC0_LSIO_GPIO4_IO03	0x06000060
+				SC_P_USB_SS3_TC0_LSIO_GPIO4_IO03	0x00000021
 			>;
 		};
 
 		/* Apalis USBO1_OC# */
 		pinctrl_gpio_usbo1_oc_n: gpiousbo1ocn {
 			fsl,pins = <
-				SC_P_USB_SS3_TC2_LSIO_GPIO4_IO05	0x06000060
+				SC_P_USB_SS3_TC2_LSIO_GPIO4_IO05	0x04000021
 			>;
 		};
 
@@ -586,6 +622,20 @@
 	status = "okay";
 };
 
+&usbotg1 {
+	vbus-supply = <&reg_usb_otg1_vbus>;
+	srp-disable;
+	hnp-disable;
+	adp-disable;
+	disable-over-current;
+	status = "okay";
+};
+
+&usbotg3 {
+	dr_mode = "host";
+	vbus-supply = <&reg_usb_host_vbus>;
+};
+
 /* eMMC */
 &usdhc1 {
 	pinctrl-names = "default";
@@ -601,6 +651,7 @@
 	pinctrl-0 = <&pinctrl_usdhc2>, <&pinctrl_mmc1_cd>;
 	bus-width = <8>;
 	cd-gpios = <&gpio2 9 GPIO_ACTIVE_LOW>; /* Apalis MMC1_CD# */
+	vmmc-supply = <&reg_usdhc2_vmmc>;
 	status = "okay";
 };
 

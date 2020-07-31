@@ -30,31 +30,55 @@
 #define MEM_LAYOUT_ENV_SETTINGS \
 	"fdt_addr_r=0x84000000\0" \
 	"kernel_addr_r=0x82000000\0" \
-	"ramdisk_addr_r=0x94400000\0" \
+	"ramdisk_addr_r=0x86400000\0" \
 	"scriptaddr=0x87000000\0"
+
+/* Boot M4 */
+#define M4_BOOT_ENV \
+	"m4_0_image=m4_0.bin\0" \
+	"m4_1_image=m4_1.bin\0" \
+	"loadm4image_0=fatload mmc ${mmcdev}:${mmcpart} ${loadaddr} ${m4_0_image}\0" \
+	"loadm4image_1=fatload mmc ${mmcdev}:${mmcpart} ${loadaddr} ${m4_1_image}\0" \
+	"m4boot_0=run loadm4image_0; dcache flush; bootaux ${loadaddr} 0\0" \
+	"m4boot_1=run loadm4image_1; dcache flush; bootaux ${loadaddr} 1\0" \
 
 #define BOOT_TARGET_DEVICES(func) \
 	func(MMC, mmc, 1) \
 	func(MMC, mmc, 2) \
 	func(MMC, mmc, 0) \
+	func(USB, usb, 0) \
 	func(DHCP, dhcp, na)
 #include <config_distro_bootcmd.h>
-#undef BOOTENV_RUN_NET_USB_START
-#define BOOTENV_RUN_NET_USB_START ""
+
+#ifdef CONFIG_AHAB_BOOT
+#define AHAB_ENV "sec_boot=yes\0"
+#else
+#define AHAB_ENV "sec_boot=no\0"
+#endif
+
+#define FDT_FILE			"fsl-imx8qm-apalis-v1.1-eval.dtb"
+#define FDT_FILE_V1_0			"fsl-imx8qm-apalis-eval.dtb"
 
 /* Initial environment variables */
 #define CONFIG_EXTRA_ENV_SETTINGS \
+	AHAB_ENV \
 	BOOTENV \
+	M4_BOOT_ENV \
 	MEM_LAYOUT_ENV_SETTINGS \
+	"bootcmd_mfg=select_dt_from_module_version && fastboot 0\0" \
+	"script=boot.scr\0" \
+	"image=Image\0" \
 	"console=ttyLP1 earlycon\0" \
 	"fdt_addr=0x83000000\0"	\
-	"fdt_high=0xffffffffffffffff\0" \
-	"fdt_file=fsl-imx8qm-apalis-eval.dtb\0" \
-	"fdtfile=fsl-imx8qm-apalis-eval.dtb\0" \
+	"fdt_high=\0" \
+	"boot_fdt=try\0" \
+	"fdtfile=" FDT_FILE "\0" \
 	"finduuid=part uuid mmc ${mmcdev}:2 uuid\0" \
-	"image=Image\0" \
 	"initrd_addr=0x83800000\0" \
-	"initrd_high=0xffffffffffffffff\0" \
+	"hdp_addr=0x84000000\0" \
+	"hdp_file=hdmitxfw.bin\0" \
+	"loadhdp=fatload mmc ${mmcdev}:${mmcpart} ${hdp_addr} ${hdp_file}\0" \
+	"mmcautodetect=yes\0" \
 	"mmcargs=setenv bootargs console=${console},${baudrate} " \
 		"root=PARTUUID=${uuid} rootwait " \
 	"mmcdev=" __stringify(CONFIG_SYS_MMC_ENV_DEV) "\0" \
@@ -65,12 +89,14 @@
 	"nfsboot=run netargs; dhcp ${loadaddr} ${image}; tftp ${fdt_addr} " \
 		"apalis-imx8/${fdt_file}; booti ${loadaddr} - ${fdt_addr}\0" \
 	"panel=NULL\0" \
-	"script=boot.scr\0" \
 	"update_uboot=askenv confirm Did you load u-boot-dtb.imx (y/N)?; " \
 		"if test \"$confirm\" = \"y\"; then " \
 		"setexpr blkcnt ${filesize} + 0x1ff && setexpr blkcnt " \
 		"${blkcnt} / 0x200; mmc dev 0 1; mmc write ${loadaddr} 0x0 " \
-		"${blkcnt}; fi\0"
+		"${blkcnt}; fi\0" \
+	"video=imxdpufb5:off video=imxdpufb6:off video=imxdpufb7:off\0" \
+	"setup=run loadhdp; hdp load ${hdp_addr}; run mmcargs\0" \
+	"defargs=pci=nomsi"
 
 /* Link Definitions */
 #define CONFIG_LOADADDR			0x80280000
@@ -104,5 +130,36 @@
 
 /* Generic Timer Definitions */
 #define COUNTER_FREQUENCY		8000000	/* 8MHz */
+
+/* USB Config */
+#ifndef CONFIG_SPL_BUILD
+#define CONFIG_USBD_HS
+
+#define CONFIG_CMD_USB_MASS_STORAGE
+#define CONFIG_USB_GADGET_MASS_STORAGE
+#define CONFIG_USB_FUNCTION_MASS_STORAGE
+
+#endif
+
+#define CONFIG_USB_MAX_CONTROLLER_COUNT 2
+
+/* USB OTG controller configs */
+#ifdef CONFIG_USB_EHCI_HCD
+#define CONFIG_USB_HOST_ETHER
+#define CONFIG_USB_ETHER_ASIX
+#define CONFIG_MXC_USB_PORTSC		(PORT_PTS_UTMI | PORT_PTS_PTW)
+#endif
+
+#ifdef CONFIG_DM_VIDEO
+#define CONFIG_VIDEO_LOGO
+#define CONFIG_SPLASH_SCREEN
+#define CONFIG_SPLASH_SCREEN_ALIGN
+#define CONFIG_CMD_BMP
+#define CONFIG_BMP_16BPP
+#define CONFIG_BMP_24BPP
+#define CONFIG_BMP_32BPP
+#define CONFIG_VIDEO_BMP_RLE8
+#define CONFIG_VIDEO_BMP_LOGO
+#endif
 
 #endif /* __APALIS_IMX8_H */
