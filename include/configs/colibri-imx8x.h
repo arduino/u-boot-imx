@@ -67,6 +67,7 @@
 	"console=ttyLP3,115200 earlycon=lpuart32,0x5a090000,115200\0" \
 	"fdt_addr=0x83000000\0"	\
 	"fdtfile=" FDT_FILE "\0" \
+	"fdt_high=\0" \
 	"finduuid=part uuid mmc ${mmcdev}:2 uuid\0" \
 	"image=Image\0" \
 	"initrd_addr=0x83800000\0" \
