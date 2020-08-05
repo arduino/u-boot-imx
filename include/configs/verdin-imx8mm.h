@@ -82,7 +82,6 @@
 
 /* Enable Distro Boot */
 #ifndef CONFIG_SPL_BUILD
-#define CONFIG_BOOTCOMMAND "setenv fdtfile " FDT_FILE " && run distro_bootcmd;"
 #define BOOT_TARGET_DEVICES(func) \
 	func(MMC, mmc, 1) \
 	func(MMC, mmc, 0) \
@@ -102,6 +101,7 @@
 	"console=ttymxc0\0" \
 	"fdt_addr=0x43000000\0" \
 	"fdt_board=dev\0" \
+	"fdtfile=" FDT_FILE "\0" \
 	"initrd_addr=0x43800000\0" \
 	"initrd_high=0xffffffffffffffff\0" \
 	"kernel_image=Image\0" \
