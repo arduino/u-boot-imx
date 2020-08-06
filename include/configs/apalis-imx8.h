@@ -39,7 +39,7 @@
 #define FEC_ENET_ENABLE_TXC_DELAY
 
 #define MEM_LAYOUT_ENV_SETTINGS \
-	"fdt_addr_r=0x84000000\0" \
+	"fdt_addr_r=0x83800000\0" \
 	"kernel_addr_r=0x82000000\0" \
 	"ramdisk_addr_r=0x86400000\0" \
 	"scriptaddr=0x87000000\0"
@@ -78,15 +78,14 @@
 	MEM_LAYOUT_ENV_SETTINGS \
 	"bootcmd_mfg=select_dt_from_module_version && fastboot 0\0" \
 	"script=boot.scr\0" \
-	"image=Image\0" \
+	"kernel_image=Image\0" \
 	"console=ttyLP1 earlycon\0" \
-	"fdt_addr=0x83000000\0"	\
 	"fdt_high=\0" \
+	"fdt_addr=0x83800000\0" \
 	"boot_fdt=try\0" \
 	"fdtfile=" FDT_FILE "\0" \
 	"finduuid=part uuid mmc ${mmcdev}:2 uuid\0" \
-	"initrd_addr=0x83800000\0" \
-	"hdp_addr=0x84000000\0" \
+	"hdp_addr=0x9c000000\0" \
 	"hdp_file=hdmitxfw.bin\0" \
 	"loadhdp=fatload mmc ${mmcdev}:${mmcpart} ${hdp_addr} ${hdp_file}\0" \
 	"mmcautodetect=yes\0" \
@@ -98,7 +97,7 @@
 		"root=/dev/nfs ip=dhcp nfsroot=${serverip}:${nfsroot},v3,tcp" \
 		"\0" \
 	"nfsboot=run netargs; dhcp ${loadaddr} ${image}; tftp ${fdt_addr} " \
-		"apalis-imx8/${fdt_file}; booti ${loadaddr} - ${fdt_addr}\0" \
+		"apalis-imx8/${fdtfile}; booti ${loadaddr} - ${fdt_addr}\0" \
 	"panel=NULL\0" \
 	"update_uboot=askenv confirm Did you load u-boot-dtb.imx (y/N)?; " \
 		"if test \"$confirm\" = \"y\"; then " \
