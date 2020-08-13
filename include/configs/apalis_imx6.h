@@ -81,11 +81,7 @@
 
 #ifndef CONFIG_SPL_BUILD
 #define BOOT_TARGET_DEVICES(func) \
-	func(MMC, mmc, 1) \
-	func(MMC, mmc, 2) \
-	func(MMC, mmc, 0) \
-	func(USB, usb, 0) \
-	func(DHCP, dhcp, na)
+	func(MMC, mmc, 0)
 #include <config_distro_bootcmd.h>
 #undef BOOTENV_RUN_NET_USB_START
 #define BOOTENV_RUN_NET_USB_START ""
