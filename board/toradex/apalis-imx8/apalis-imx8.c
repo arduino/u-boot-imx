@@ -128,45 +128,12 @@ int checkboard(void)
 	return 0;
 }
 
-int board_init(void)
-{
-#ifdef CONFIG_MXC_GPIO
-	board_gpio_init();
-#endif
-
-#ifdef CONFIG_SNVS_SEC_SC_AUTO
-	{
-		int ret = snvs_security_sc_init();
-
-		if (ret)
-			return ret;
-	}
-#endif
-
-	return 0;
-}
-
-
-/*
- * Board specific reset that is system reset.
- */
-void reset_cpu(ulong addr)
-{
-	sc_pm_reboot(-1, SC_PM_RESET_TYPE_COLD);
-	while(1);
-}
-
 #if defined(CONFIG_OF_LIBFDT) && defined(CONFIG_OF_BOARD_SETUP)
 int ft_board_setup(void *blob, bd_t *bd)
 {
 	return ft_common_board_setup(blob, bd);
 }
 #endif
-
-int mmc_map_to_kernel_blk(int dev_no)
-{
-	return dev_no;
-}
 
 static int check_mmc_autodetect(void)
 {
@@ -236,40 +203,42 @@ static pcb_rev_t get_pcb_revision(void)
 	}
 }
 
-static void select_dt_from_module_version(void)
+int board_init(void)
 {
-	char *fdt_env = env_get("fdtfile");
-
-	switch(get_pcb_revision()) {
-		case PCB_VERSION_1_0:
-			if (strcmp(FDT_FILE_V1_0, fdt_env)) {
-				env_set("fdtfile", FDT_FILE_V1_0);
-				printf("Detected a V1.0 module, setting " \
-					"correct devicetree\n");
-#ifndef CONFIG_ENV_IS_NOWHERE
-				env_save();
+#ifdef CONFIG_MXC_GPIO
+	board_gpio_init();
 #endif
-			}
-			break;
-		default:
-			break;
-	}
-}
 
-static int do_select_dt_from_module_version(cmd_tbl_t *cmdtp, int flag, int argc,
-		       char * const argv[]) {
-	select_dt_from_module_version();
+#ifdef CONFIG_SNVS_SEC_SC_AUTO
+	{
+		int ret = snvs_security_sc_init();
+
+		if (ret)
+			return ret;
+	}
+#endif
+
 	return 0;
 }
 
-U_BOOT_CMD(
-	select_dt_from_module_version, CONFIG_SYS_MAXARGS, 1, do_select_dt_from_module_version,
-	"\n", "    - select devicetree from module version"
-);
+
+/*
+ * Board specific reset that is system reset.
+ */
+void reset_cpu(ulong addr)
+{
+	sc_pm_reboot(-1, SC_PM_RESET_TYPE_COLD);
+	while(1);
+}
 
 int board_mmc_get_env_dev(int devno)
 {
 	return devno;
+}
+
+int mmc_map_to_kernel_blk(int dev_no)
+{
+	return dev_no;
 }
 
 int board_late_init(void)
@@ -313,3 +282,34 @@ int board_late_init(void)
 
 	return 0;
 }
+
+static void select_dt_from_module_version(void)
+{
+	char *fdt_env = env_get("fdtfile");
+
+	switch(get_pcb_revision()) {
+		case PCB_VERSION_1_0:
+			if (strcmp(FDT_FILE_V1_0, fdt_env)) {
+				env_set("fdtfile", FDT_FILE_V1_0);
+				printf("Detected a V1.0 module, setting " \
+					"correct devicetree\n");
+#ifndef CONFIG_ENV_IS_NOWHERE
+				env_save();
+#endif
+			}
+			break;
+		default:
+			break;
+	}
+}
+
+static int do_select_dt_from_module_version(cmd_tbl_t *cmdtp, int flag, int argc,
+		       char * const argv[]) {
+	select_dt_from_module_version();
+	return 0;
+}
+
+U_BOOT_CMD(
+	select_dt_from_module_version, CONFIG_SYS_MAXARGS, 1, do_select_dt_from_module_version,
+	"\n", "    - select devicetree from module version"
+);
