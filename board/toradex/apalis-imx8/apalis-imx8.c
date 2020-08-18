@@ -72,17 +72,20 @@ static void setup_iomux_uart(void)
 int board_early_init_f(void)
 {
 	sc_pm_clock_rate_t rate = SC_80MHZ;
-	sc_err_t err = 0;
+	int ret;
 
-	/* Set UART0 clock root to 80 MHz */
-	err = sc_pm_setup_uart(SC_R_UART_0, rate);
-	if (err)
-		return err;
+	/**
+	 *  Set UART0 clock root to 80 MHz and enable it
+	 *  This is needed in order for UART1 to work
+	 */
+	ret = sc_pm_setup_uart(SC_R_UART_0, rate);
+	if (ret)
+		return ret;
 
 	/* Set UART1 clock root to 80 MHz and enable it */
-	err = sc_pm_setup_uart(SC_R_UART_1, rate);
-	if (err != SC_ERR_NONE)
-		return err;
+	ret = sc_pm_setup_uart(SC_R_UART_1, rate);
+	if (ret)
+		return ret;
 
 	setup_iomux_uart();
 
