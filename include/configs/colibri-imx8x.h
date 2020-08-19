@@ -68,7 +68,7 @@
 	func(DHCP, dhcp, na)
 #include <config_distro_bootcmd.h>
 
-#define FDT_FILE			"fsl-imx8qxp-colibri-eval-v3.dtb"
+#define FDT_FILE			"imx8qxp-colibri-eval-v3.dtb"
 
 #include <config_distro_bootcmd.h>
 /* Initial environment variables */
