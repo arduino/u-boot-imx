@@ -125,7 +125,6 @@ int checkboard(void)
 {
 	puts("Model: Toradex Apalis iMX8\n");
 
-	build_info();
 	print_bootinfo();
 
 	return 0;
@@ -251,6 +250,8 @@ int board_late_init(void)
 	env_set("board_name", "Apalis iMX8QM");
 	env_set("board_rev", "v1.0");
 #endif
+
+	build_info();
 
 #ifdef CONFIG_AHAB_BOOT
 	env_set("sec_boot", "yes");
