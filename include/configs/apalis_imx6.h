@@ -53,7 +53,9 @@
 #endif
 
 /* Network */
+#ifndef PHY_ANEG_TIMEOUT
 #define PHY_ANEG_TIMEOUT		15000 /* PHY needs longer aneg time */
+#endif
 
 /* USB Configs */
 /* Host */
