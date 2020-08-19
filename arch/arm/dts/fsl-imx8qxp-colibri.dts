@@ -13,7 +13,7 @@
 	compatible = "toradex,colibri-imx8qxp", "fsl,imx8qxp";
 
 	chosen {
-		bootargs = "console=ttyLP3,115200 earlycon=lpuart32,0x5a090000,115200";
+		bootargs = "console=ttyLP3,115200";
 		stdout-path = &lpuart3;
 	};
 
