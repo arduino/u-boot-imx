@@ -30,11 +30,23 @@
 #define CONFIG_NETMASK			255.255.255.0
 #define CONFIG_SERVERIP			192.168.10.1
 
+/**
+ * SYS_SDRAM_BASE	0x80000000	0.125MiB
+ * SYS_TEXT_BASE	0x80020000	2.375MiB
+ * kernel_addr_r	0x80280000	45.5MiB
+ * fdt_addr_r		0x83000000	1MiB
+ * scriptaddr		0x83100000	15MiB
+ * __RESERVED__		0x84000000	48MiB
+ * loadaddr		0x87000000	48MiB
+ * ramdisk_addr_r	0x8a000000	288MiB
+ * SYS_MEMTEST_START	0x90000000
+ * SYS_MEMTEST_END	0xC0000000
+ */
 #define MEM_LAYOUT_ENV_SETTINGS \
+	"kernel_addr_r=0x80280000\0" \
 	"fdt_addr_r=0x83000000\0" \
-	"kernel_addr_r=0x81000000\0" \
-	"ramdisk_addr_r=0x83800000\0" \
-	"scriptaddr=0x80800000\0"
+	"ramdisk_addr_r=0x8a000000\0" \
+	"scriptaddr=0x83100000\0"
 
 #ifdef CONFIG_AHAB_BOOT
 #define AHAB_ENV "sec_boot=yes\0"
@@ -100,8 +112,8 @@
 
 #define CONFIG_SYS_INIT_SP_ADDR		0x80200000
 
-#define CONFIG_SYS_MEMTEST_START	0x88000000
-#define CONFIG_SYS_MEMTEST_END		0x89000000
+#define CONFIG_SYS_MEMTEST_START	0x90000000
+#define CONFIG_SYS_MEMTEST_END		0xc0000000
 
 #define CONFIG_SYS_MMC_IMG_LOAD_PART	1
 
