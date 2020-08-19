@@ -179,6 +179,8 @@ int board_init(void)
 	return 0;
 }
 
+/* todo: With that function in ther is no console output in linux, drop for now */
+#if 0
 void board_quiesce_devices(void)
 {
 	const char *power_on_devices[] = {
@@ -191,6 +193,7 @@ void board_quiesce_devices(void)
 
 	power_off_pd_devices(power_on_devices, ARRAY_SIZE(power_on_devices));
 }
+#endif
 
 void detail_board_ddr_info(void)
 {
