@@ -71,7 +71,7 @@ build all 64bit Toradex boards:
   variables:
     ARCH: arm64
     CROSS_COMPILE: /opt/gcc-7.3.0-nolibc/aarch64-linux/bin/aarch64-linux-
-    TARGETS: "colibri-imx8qxp apalis-imx8qm verdin-imx8mm"
+    TARGETS: "colibri-imx8x apalis-imx8x apalis-imx8 verdin-imx8mm"
   script: |
     for TARGET in $TARGETS; do
       echo -ne "#\n#\n#\n#\n#\n#\n# Building ${TARGET}\n#\n#\n#\n#\n#\n#\n"
