@@ -819,56 +819,62 @@ static int sdp_handle_in_ep(struct spl_image_info *spl_image)
 		sdp_func->state = SDP_STATE_TX_REGISTER_BUSY;
 		break;
 	case SDP_STATE_JUMP:
-		printf("Jumping to header at 0x%08x\n", sdp_func->jmp_address);
-		status = sdp_jump_imxheader(sdp_ptr(sdp_func->jmp_address));
-
-		/* If imx header fails, try some U-Boot specific headers */
-		if (status) {
 #ifdef CONFIG_SPL_BUILD
-			if (IS_ENABLED(CONFIG_SPL_LOAD_IMX_CONTAINER))
-				sdp_func->jmp_address = (u32)search_container_header((ulong)sdp_func->jmp_address, sdp_func->dnl_bytes);
-			else if (IS_ENABLED(CONFIG_SPL_LOAD_FIT))
-				sdp_func->jmp_address = (u32)search_fit_header((ulong)sdp_func->jmp_address, sdp_func->dnl_bytes);
-			if (sdp_func->jmp_address == 0)
-				panic("Error in search header, failed to jump\n");
+		if (IS_ENABLED(CONFIG_SPL_LOAD_IMX_CONTAINER))
+			sdp_func->jmp_address = (u32)search_container_header((ulong)sdp_func->jmp_address, sdp_func->dnl_bytes);
+		else if (IS_ENABLED(CONFIG_SPL_LOAD_FIT))
+			sdp_func->jmp_address = (u32)search_fit_header((ulong)sdp_func->jmp_address, sdp_func->dnl_bytes);
+		if (sdp_func->jmp_address == 0)
+			panic("Error in search header, failed to jump\n");
 
-			printf("Found header at 0x%08x\n", sdp_func->jmp_address);
+		printf("Found header at 0x%08x\n", sdp_func->jmp_address);
 
-			image_header_t *header =
-				sdp_ptr(sdp_func->jmp_address);
-#ifdef CONFIG_SPL_LOAD_FIT
-			if (image_get_magic(header) == FDT_MAGIC) {
-				struct spl_load_info load;
+		image_header_t *header =
+			sdp_ptr(sdp_func->jmp_address);
 
-				debug("Found FIT\n");
-				load.dev = header;
-				load.bl_len = 1;
-				load.read = sdp_load_read;
-				spl_load_simple_fit(spl_image, &load, 0,
-						    header);
+		if (IS_ENABLED(CONFIG_SPL_LOAD_FIT) &&
+		    image_get_magic(header) == FDT_MAGIC) {
+			struct spl_load_info load;
 
-				return SDP_EXIT;
-			}
-#endif
-			if (IS_ENABLED(CONFIG_SPL_LOAD_IMX_CONTAINER)) {
-				struct spl_load_info load;
+			debug("Found FIT\n");
+			load.dev = header;
+			load.bl_len = 1;
+			load.read = sdp_load_read;
+			spl_load_simple_fit(spl_image, &load, 0, header);
 
-				load.dev = header;
-				load.bl_len = 1;
-				load.read = sdp_load_read;
-				spl_load_imx_container(spl_image, &load, 0);
-				return SDP_EXIT;
-			}
-
-			/* In SPL, allow jumps to U-Boot images */
-			struct spl_image_info spl_image = {};
-			spl_parse_image_header(&spl_image, header);
-			jump_to_image_no_args(&spl_image);
-#else
-			/* In U-Boot, allow jumps to scripts */
-			image_source_script(sdp_func->jmp_address, "script@1");
-#endif
+			return SDP_EXIT;
 		}
+
+		if (IS_ENABLED(CONFIG_SPL_LOAD_IMX_CONTAINER)) {
+			struct spl_load_info load;
+
+			load.dev = header;
+			load.bl_len = 1;
+			load.read = sdp_load_read;
+			spl_load_imx_container(spl_image, &load, 0);
+			return SDP_EXIT;
+		}
+
+		if (IS_ENABLED(CONFIG_SPL_LEGACY_IMAGE_SUPPORT)) {
+			status = sdp_jump_imxheader(header);
+
+			/* If imx header fails, try some U-Boot specific headers */
+			if (status) {
+				/* In SPL, allow jumps to U-Boot images */
+				struct spl_image_info spl_image = {};
+				spl_parse_image_header(&spl_image, header);
+				jump_to_image_no_args(&spl_image);
+			}
+		}
+#else /* CONFIG_SPL_BUILD */
+		if (IS_ENABLED(CONFIG_LEGACY_IMAGE_SUPPORT)) {
+			printf("Jumping to header at 0x%08x\n", sdp_func->jmp_address);
+			sdp_jump_imxheader(sdp_ptr(sdp_func->jmp_address));
+		}
+
+		/* In U-Boot, allow jumps to scripts */
+		image_source_script(sdp_func->jmp_address, "script@1");
+#endif /* CONFIG_SPL_BUILD */
 
 		sdp_func->next_state = SDP_STATE_IDLE;
 		sdp_func->error_status = status;
