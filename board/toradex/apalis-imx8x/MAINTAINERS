@@ -5,5 +5,5 @@ S:	Maintained
 F:	arch/arm/dts/fsl-imx8x-apalis.dts
 F:	arch/arm/dts/fsl-imx8x-apalis-u-boot.dtsi
 F:	board/toradex/apalis-imx8x/
-F:	configs/apalis-imx8qxp_defconfig
+F:	configs/apalis-imx8x_defconfig
 F:	include/configs/apalis-imx8x.h
