@@ -121,15 +121,6 @@ int board_phy_config(struct phy_device *phydev)
 }
 #endif
 
-int checkboard(void)
-{
-	puts("Model: Toradex Apalis iMX8\n");
-
-	print_bootinfo();
-
-	return 0;
-}
-
 #if defined(CONFIG_OF_LIBFDT) && defined(CONFIG_OF_BOARD_SETUP)
 int ft_board_setup(void *blob, bd_t *bd)
 {

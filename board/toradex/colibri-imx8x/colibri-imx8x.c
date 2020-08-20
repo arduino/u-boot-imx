@@ -130,15 +130,6 @@ static void board_gpio_init(void)
 }
 #endif
 
-int checkboard(void)
-{
-	puts("Board: Colibri iMX8QXP \n");
-
-	print_bootinfo();
-
-	return 0;
-}
-
 /* Only Enable USB3 resources currently */
 int board_usb_init(int index, enum usb_init_type init)
 {
