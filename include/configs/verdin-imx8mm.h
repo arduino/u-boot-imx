@@ -69,7 +69,7 @@
 #define CONFIG_SERVERIP		192.168.10.1
 #endif /* CONFIG_CMD_NET */
 
-#define FDT_FILE "fsl-imx8mm-verdin-${variant}-${fdt_board}.dtb"
+#define FDT_FILE "imx8mm-verdin-${variant}-${fdt_board}.dtb"
 
 #define MEM_LAYOUT_ENV_SETTINGS \
 	"fdt_addr_r=0x44000000\0" \
