@@ -58,13 +58,13 @@ int board_early_init_f(void)
 
 	/*
 	 * This works around that having only UART3 up the baudrate is 1.2M
-	 * instead of 115.2k. Set UART0 clock root to 80 MHz
+	 * instead of 115.2k. Set UART0 clock root to 80 MHz and enable it
 	 */
 	ret = sc_pm_setup_uart(SC_R_UART_0, rate);
 	if (ret)
 		return ret;
 
-	/* Set UART0 clock root to 80 MHz */
+	/* Set UART0 clock root to 80 MHz and enable it */
 	ret = sc_pm_setup_uart(SC_R_UART_3, rate);
 	if (ret)
 		return ret;
