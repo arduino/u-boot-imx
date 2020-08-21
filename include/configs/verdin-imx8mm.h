@@ -72,8 +72,8 @@
 #define FDT_FILE "imx8mm-verdin-${variant}-${fdt_board}.dtb"
 
 #define MEM_LAYOUT_ENV_SETTINGS \
-	"fdt_addr_r=0x44000000\0" \
-	"kernel_addr_r=0x42000000\0" \
+	"fdt_addr_r=0x43000000\0" \
+	"kernel_addr_r=0x40000000\0" \
 	"ramdisk_addr_r=0x46400000\0" \
 	"scriptaddr=0x46000000\0"
 
@@ -101,7 +101,6 @@
 	MEM_LAYOUT_ENV_SETTINGS \
 	"bootcmd_mfg=fastboot 0\0" \
 	"console=ttymxc0\0" \
-	"fdt_addr=0x43000000\0" \
 	"fdt_board=dev\0" \
 	"initrd_addr=0x43800000\0" \
 	"initrd_high=0xffffffffffffffff\0" \
