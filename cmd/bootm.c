@@ -179,6 +179,11 @@ int do_bootm(struct cmd_tbl *cmdtp, int flag, int argc, char *const argv[])
 		/* Do this authentication in boota command */
 		break;
 #endif
+#if defined(CONFIG_FIT) && defined(CONFIG_FIT_SIGNATURE)
+	case IMAGE_FORMAT_FIT:
+		/* Assume authentication is done by fit signature */
+		break;
+#endif
 	default:
 		printf("Not valid image format for Authentication, Please check\n");
 		return 1;
