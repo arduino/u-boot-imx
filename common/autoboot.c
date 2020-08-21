@@ -348,6 +348,7 @@ const char *bootdelay_process(void)
 		bootdelay = fdtdec_get_config_int(gd->fdt_blob, "bootdelay",
 						  bootdelay);
 
+#if defined(CONFIG_USB_FUNCTION_FASTBOOT)
 #if defined(is_boot_from_usb)
 	if (is_boot_from_usb() && env_get("bootcmd_mfg")) {
 		disconnect_from_pc();
@@ -358,9 +359,8 @@ const char *bootdelay_process(void)
 	} else if (is_boot_from_usb()) {
 		printf("Boot from USB for uuu\n");
 		env_set("bootcmd", "fastboot 0");
-	} else {
-		printf("Normal Boot\n");
 	}
+#endif
 #endif
 
 	debug("### main_loop entered: bootdelay=%d\n\n", bootdelay);
@@ -379,11 +379,13 @@ const char *bootdelay_process(void)
 	else
 		s = env_get("bootcmd");
 
+#if defined(CONFIG_USB_FUNCTION_FASTBOOT)
 #if defined(is_boot_from_usb)
 	if (is_boot_from_usb() && env_get("bootcmd_mfg")) {
 		s = env_get("bootcmd_mfg");
 		printf("Run bootcmd_mfg: %s\n", s);
 	}
+#endif
 #endif
 
 	if (IS_ENABLED(CONFIG_OF_CONTROL))
