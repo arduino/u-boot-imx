@@ -33,17 +33,7 @@
 		"rdinit=/linuxrc " \
 		"clk_ignore_unused "\
 		"\0" \
-	"kboot="MFG_BOOT_CMD"\0"\
-	"bootcmd_mfg=run mfgtool_args;" \
-        "if iminfo ${initrd_addr}; then " \
-            "if test ${tee} = yes; then " \
-                "bootm ${tee_addr} ${initrd_addr} ${fdt_addr}; " \
-            "else " \
-                MFG_BOOT_CMD "${loadaddr} ${initrd_addr} ${fdt_addr}; " \
-            "fi; " \
-        "else " \
-		FASTBOOT_CMD  \
-        "fi;\0" \
 	MFG_NAND_FIT_PARTITION \
+	FASTBOOT_CMD \
 
 #endif
