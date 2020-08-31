@@ -11,6 +11,7 @@
 #include <asm/arch/mx7ulp-pins.h>
 #include <asm/arch/iomux.h>
 #include <asm/gpio.h>
+#include <linux/delay.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -43,6 +44,18 @@ int board_early_init_f(void)
 	setup_iomux_uart();
 
 	return 0;
+}
+
+/* will reset the M4 and the A7 */
+void board_m4_restart(void)
+{
+	unsigned reset = IMX_GPIO_NR(3, 10); /* PTC10 */
+
+	printf("ea board: system reset\n");
+	gpio_request(reset, "system_reset");
+	gpio_direction_output(reset, 0);
+	udelay(100);
+	gpio_set_value(reset, 1);
 }
 
 int board_init(void)
