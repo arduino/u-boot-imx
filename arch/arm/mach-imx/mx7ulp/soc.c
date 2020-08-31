@@ -278,7 +278,7 @@ void s_init(void)
 }
 #endif
 
-#ifndef CONFIG_ULP_WATCHDOG
+#if !defined(CONFIG_ULP_WATCHDOG) || defined(CONFIG_SPL_BUILD)
 void reset_cpu(ulong addr)
 {
 	setbits_le32(SIM0_RBASE, SIM_SOPT1_A7_SW_RESET);
