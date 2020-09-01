@@ -9,15 +9,44 @@
 
 / {
 	model = "Embedded Artists i.MX7ULP COM";
-	compatible = "ea,imx7ulp-com", "fsl,imx7ulp";
+	compatible = "ea,imx7ulp-com", "fsl,imx7ulpea-ucom", "fsl,imx7ulp";
 
 	chosen {
-		stdout-path = &lpuart4;
+		bootargs = "console=ttyLP0,115200 earlycon=lpuart32,0x402D0000,115200";
+		stdout-path = "serial0:115200n8";
 	};
 
 	memory {
 		device_type = "memory";
-		reg = <0x60000000 0x8000000>;
+		reg = <0x60000000 0x40000000>;
+	};
+
+	regulators {
+		compatible = "simple-bus";
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		reg_usb_otg1_vbus: regulator@0 {
+			compatible = "regulator-fixed";
+			reg = <0>;
+			pinctrl-names = "default";
+			pinctrl-0 = <&pinctrl_usbotg1_vbus>;
+			regulator-name = "usb_otg1_vbus";
+			regulator-min-microvolt = <5000000>;
+			regulator-max-microvolt = <5000000>;
+			gpio = <&gpio0 0 GPIO_ACTIVE_HIGH>;
+			enable-active-high;
+		};
+
+		reg_vsd_3v3: regulator@1 {
+			compatible = "regulator-fixed";
+			reg = <1>;
+			regulator-name = "VSD_3V3";
+			regulator-min-microvolt = <3300000>;
+			regulator-max-microvolt = <3300000>;
+			gpio = <&gpio1 0 GPIO_ACTIVE_HIGH>;
+			enable-active-high;
+		};
 	};
 };
 
@@ -27,7 +56,12 @@
 	status = "okay";
 };
 
+&rpmsg {
+	status = "okay";
+};
+
 &usbotg1 {
+	vbus-supply = <&reg_usb_otg1_vbus>;
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_usbotg1_id>;
 	srp-disable;
@@ -106,6 +140,12 @@
 			IMX7ULP_PAD_PTD9__SDHC0_D1	0x43
 			IMX7ULP_PAD_PTD10__SDHC0_D0	0x43
 			IMX7ULP_PAD_PTD11__SDHC0_DQS	0x42
+		>;
+	};
+
+	pinctrl_usbotg1_vbus: otg1vbusgrp {
+		fsl,pins = <
+			IMX7ULP_PAD_PTC0__PTC0		0x20000
 		>;
 	};
 
