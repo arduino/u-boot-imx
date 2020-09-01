@@ -14,6 +14,8 @@
 #define CONFIG_BOARD_POSTCLK_INIT
 #define CONFIG_SYS_BOOTM_LEN		0x1000000
 
+#define CONFIG_SERIAL_TAG
+
 /*
  * Detect overlap between U-Boot image and environment area in build-time
  *
@@ -42,20 +44,46 @@
 /* UART */
 #define LPUART_BASE			LPUART4_RBASE
 
+/* allow to overwrite serial and ethaddr */
+#define CONFIG_BAUDRATE			115200
+
+#define CONFIG_SYS_CACHELINE_SIZE      64
+
+/* Miscellaneous configurable options */
+#define CONFIG_SYS_PROMPT		"=> "
+#define CONFIG_SYS_CBSIZE		512
+
+#define CONFIG_SYS_MAXARGS		256
+
 /* Physical Memory Map */
 
-#define PHYS_SDRAM			0x60000000
+#define PHYS_SDRAM			0x60000000ul
+#define PHYS_SDRAM_SIZE			SZ_1G
+#define CONFIG_SYS_MEMTEST_START	PHYS_SDRAM
 #define CONFIG_SYS_SDRAM_BASE		PHYS_SDRAM
 
 #define CONFIG_LOADADDR			0x60800000
 
+#define CONFIG_SYS_MEMTEST_END		(CONFIG_SYS_MEMTEST_START + (PHYS_SDRAM_SIZE >> 1))
+
+#define CONFIG_MFG_ENV_SETTINGS \
+	"mfgtool_args=setenv bootargs console=${console},${baudrate} " \
+		"rdinit=/linuxrc " \
+		"clk_ignore_unused "\
+		"\0" \
+	"bootcmd_mfg=run mfgtool_args; echo \"Run fastboot ...\";" \
+		"fastboot 0;\0"
+
 #define CONFIG_EXTRA_ENV_SETTINGS \
+	CONFIG_MFG_ENV_SETTINGS \
 	"image=zImage\0" \
 	"console=ttyLP0\0" \
 	"fdt_high=0xffffffff\0" \
+	"initrd_addr=0x63800000\0" \
 	"initrd_high=0xffffffff\0" \
 	"fdt_file=imx7ulp-com.dtb\0" \
 	"fdt_addr=0x63000000\0" \
+	"earlycon=lpuart32,0x402D0010\0" \
 	"mmcdev="__stringify(CONFIG_SYS_MMC_ENV_DEV)"\0" \
 	"mmcpart=" __stringify(CONFIG_SYS_MMC_IMG_LOAD_PART) "\0" \
 	"mmcroot=" CONFIG_MMCROOT " rootwait rw\0" \
@@ -74,6 +102,7 @@
 		"run mmcboot; " \
 	"fi; " \
 
+#define CONFIG_SYS_HZ			1000
 #define CONFIG_SYS_LOAD_ADDR		CONFIG_LOADADDR
 
 #define CONFIG_SYS_INIT_RAM_ADDR	IRAM_BASE_ADDR
@@ -83,6 +112,14 @@
 	(CONFIG_SYS_INIT_RAM_SIZE - GENERATED_GBL_DATA_SIZE)
 #define CONFIG_SYS_INIT_SP_ADDR \
 	(CONFIG_SYS_INIT_RAM_ADDR + CONFIG_SYS_INIT_SP_OFFSET)
+
+/* QSPI configs */
+#ifdef CONFIG_FSL_QSPI
+#define FSL_QSPI_FLASH_NUM              1
+#define FSL_QSPI_FLASH_SIZE             SZ_8M
+#define QSPI0_BASE_ADDR                 0x410A5000
+#define QSPI0_AMBA_BASE                 0xC0000000
+#endif
 
 #define CONFIG_MXC_USB_PORTSC		(PORT_PTS_UTMI | PORT_PTS_PTW)
 #endif	/* __CONFIG_H */
