@@ -95,7 +95,7 @@
 	"script=boot.scr\0" \
 	"boot_file=Image\0" \
 	"console=ttyLP1 earlycon\0" \
-	"fdt_high=\0" \
+	"fdt_high=0xffffffffffffffff\0" \
 	"boot_fdt=try\0" \
 	"fdtfile=" FDT_FILE "\0" \
 	"finduuid=part uuid mmc ${mmcdev}:2 uuid\0" \
