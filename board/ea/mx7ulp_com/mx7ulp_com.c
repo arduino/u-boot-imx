@@ -76,6 +76,12 @@ int board_qspi_init(void)
 }
 #endif
 
+int board_ehci_usb_phy_mode(struct udevice *dev)
+{
+	/* TODO: probe via GPIO to identify if device or host */
+	return USB_INIT_DEVICE;
+}
+
 int board_early_init_f(void)
 {
 	setup_iomux_uart();
