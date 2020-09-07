@@ -44,9 +44,9 @@
  */
 #define MEM_LAYOUT_ENV_SETTINGS \
 	"kernel_addr_r=0x80280000\0" \
-	"fdt_addr_r=0x83000000\0" \
+	"fdt_addr_r=0x83100000\0" \
 	"ramdisk_addr_r=0x8a000000\0" \
-	"scriptaddr=0x83100000\0"
+	"scriptaddr=0x83200000\0"
 
 #ifdef CONFIG_AHAB_BOOT
 #define AHAB_ENV "sec_boot=yes\0"
@@ -106,7 +106,7 @@
 	"vidargs=video=imxdpufb5:off video=imxdpufb6:off video=imxdpufb7:off\0"
 
 /* Link Definitions */
-#define CONFIG_LOADADDR			0x80280000
+#define CONFIG_LOADADDR			0x89000000
 
 #define CONFIG_SYS_LOAD_ADDR		CONFIG_LOADADDR
 
