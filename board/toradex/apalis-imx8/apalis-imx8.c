@@ -196,6 +196,37 @@ static pcb_rev_t get_pcb_revision(void)
 	}
 }
 
+static void select_dt_from_module_version(void)
+{
+	char *fdt_env = env_get("fdtfile");
+
+	switch(get_pcb_revision()) {
+		case PCB_VERSION_1_0:
+			if (strcmp(FDT_FILE_V1_0, fdt_env)) {
+				env_set("fdtfile", FDT_FILE_V1_0);
+				printf("Detected a V1.0 module, setting " \
+					"correct devicetree\n");
+#ifndef CONFIG_ENV_IS_NOWHERE
+				env_save();
+#endif
+			}
+			break;
+		default:
+			break;
+	}
+}
+
+static int do_select_dt_from_module_version(cmd_tbl_t *cmdtp, int flag, int argc,
+		       char * const argv[]) {
+	select_dt_from_module_version();
+	return 0;
+}
+
+U_BOOT_CMD(
+	select_dt_from_module_version, CONFIG_SYS_MAXARGS, 1, do_select_dt_from_module_version,
+	"\n", "    - select devicetree from module version"
+);
+
 int board_init(void)
 {
 #ifdef CONFIG_MXC_GPIO
@@ -285,36 +316,7 @@ int board_late_init(void)
 #endif
 #endif /* CONFIG_IMX_LOAD_HDMI_FIMRWARE_RX || CONFIG_IMX_LOAD_HDMI_FIMRWARE_TX */
 
-	return 0;
-}
-
-static void select_dt_from_module_version(void)
-{
-	char *fdt_env = env_get("fdtfile");
-
-	switch(get_pcb_revision()) {
-		case PCB_VERSION_1_0:
-			if (strcmp(FDT_FILE_V1_0, fdt_env)) {
-				env_set("fdtfile", FDT_FILE_V1_0);
-				printf("Detected a V1.0 module, setting " \
-					"correct devicetree\n");
-#ifndef CONFIG_ENV_IS_NOWHERE
-				env_save();
-#endif
-			}
-			break;
-		default:
-			break;
-	}
-}
-
-static int do_select_dt_from_module_version(cmd_tbl_t *cmdtp, int flag, int argc,
-		       char * const argv[]) {
 	select_dt_from_module_version();
+
 	return 0;
 }
-
-U_BOOT_CMD(
-	select_dt_from_module_version, CONFIG_SYS_MAXARGS, 1, do_select_dt_from_module_version,
-	"\n", "    - select devicetree from module version"
-);
