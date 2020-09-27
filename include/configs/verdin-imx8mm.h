@@ -104,7 +104,7 @@
 	"fdt_board=dev\0" \
 	"initrd_addr=0x43800000\0" \
 	"initrd_high=0xffffffffffffffff\0" \
-	"kernel_image=Image\0" \
+	"boot_file=Image\0" \
 	"setup=setenv setupargs console=${console},${baudrate} console=tty1 consoleblank=0 earlycon\0"
 
 #define CONFIG_SYS_INIT_RAM_ADDR	0x40000000
