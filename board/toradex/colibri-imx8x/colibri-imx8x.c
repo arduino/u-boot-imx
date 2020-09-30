@@ -39,6 +39,8 @@ DECLARE_GLOBAL_DATA_PTR;
 #define UART_PAD_CTRL	((SC_PAD_CONFIG_OUT_IN << PADRING_CONFIG_SHIFT) | (SC_PAD_ISO_OFF << PADRING_LPCONFIG_SHIFT) \
 						| (SC_PAD_28FDSOI_DSE_DV_HIGH << PADRING_DSE_SHIFT) | (SC_PAD_28FDSOI_PS_PU << PADRING_PULL_SHIFT))
 
+#define USB_CDET_GPIO	IMX_GPIO_NR(5, 9)
+
 static iomux_cfg_t uart3_pads[] = {
 	SC_P_FLEXCAN2_RX | MUX_MODE_ALT(2) | MUX_PAD_CTRL(UART_PAD_CTRL),
 	SC_P_FLEXCAN2_TX | MUX_MODE_ALT(2) | MUX_PAD_CTRL(UART_PAD_CTRL),
@@ -49,6 +51,20 @@ static iomux_cfg_t uart3_pads[] = {
 static void setup_iomux_uart(void)
 {
 	imx8_iomux_setup_multiple_pads(uart3_pads, ARRAY_SIZE(uart3_pads));
+}
+
+int board_ci_udc_phy_mode(void *__iomem phy_base, int phy_off)
+{
+	switch ((phys_addr_t)phy_base) {
+	case 0x5b0d0000:
+		if (gpio_get_value(USB_CDET_GPIO))
+			return USB_INIT_DEVICE;
+		else
+			return USB_INIT_HOST;
+	case 0x5b110000:
+	default:
+		return USB_INIT_HOST;
+	}
 }
 
 void board_mem_get_layout(uint64_t *phys_sdram_1_start,
@@ -152,28 +168,6 @@ static void board_gpio_init(void)
 	gpio_direction_output(IOEXP_RESET, 1);
 }
 #endif
-
-/* Only Enable USB3 resources currently */
-int board_usb_init(int index, enum usb_init_type init)
-{
-	struct power_domain pd;
-	int ret = 0;
-
-	/* Power on usb */
-	if (!power_domain_lookup_name("conn_usb2", &pd)) {
-		ret = power_domain_on(&pd);
-		if (ret)
-			printf("conn_usb2 Power up failed! (error = %d)\n", ret);
-	}
-
-	if (!power_domain_lookup_name("conn_usb2_phy", &pd)) {
-		ret = power_domain_on(&pd);
-		if (ret)
-			printf("conn_usb2_phy Power up failed! (error = %d)\n", ret);
-	}
-
-	return ret;
-}
 
 int board_init(void)
 {
