@@ -1310,21 +1310,22 @@ static int ci_udc_otg_clk_init(struct udevice *dev,
 	return 0;
 }
 
-static int ci_udc_otg_phy_mode(struct udevice *dev)
+int __weak board_ci_udc_phy_mode(void *__iomem phy_base, int phy_off)
 {
-	struct ci_udc_priv_data *priv = dev_get_priv(dev);
-
 	void *__iomem phy_ctrl, *__iomem phy_status;
-	void *__iomem phy_base = (void *__iomem)devfdt_get_addr(&priv->otgdev);
 	u32 val;
 
 	if (is_mx6() || is_mx7ulp() || is_imx8()) {
+		printf("We are in is_imx8\n");
 		phy_base = (void __iomem *)fdtdec_get_addr(gd->fdt_blob,
-							   priv->phy_off,
+							   phy_off,
 							   "reg");
-		if ((fdt_addr_t)phy_base == FDT_ADDR_T_NONE)
+		if ((fdt_addr_t)phy_base == FDT_ADDR_T_NONE) {
+			printf("(fdt_addr_t)phy_base == fdt_addr_t_none)\n");
 			return -EINVAL;
+		}
 
+		printf("Getting phy ctrl\n");
 		phy_ctrl = (void __iomem *)(phy_base + USBPHY_CTRL);
 		val = readl(phy_ctrl);
 		if (val & USBPHY_CTRL_OTG_ID)
@@ -1342,6 +1343,15 @@ static int ci_udc_otg_phy_mode(struct udevice *dev)
 	} else {
 		return -EINVAL;
 	}
+}
+
+
+static int ci_udc_otg_phy_mode(struct udevice *dev)
+{
+	struct ci_udc_priv_data *priv = dev_get_priv(dev);
+
+	void *__iomem phy_base = (void *__iomem)devfdt_get_addr(&priv->otgdev);
+	return board_ci_udc_phy_mode(phy_base, priv->phy_off);
 }
 
 static int ci_udc_otg_ofdata_to_platdata(struct udevice *dev)
@@ -1382,7 +1392,6 @@ static int ci_udc_otg_probe(struct udevice *dev)
 		return -ENODEV;
 	}
 #endif
-
 	ret = board_usb_init(dev->seq, USB_INIT_DEVICE);
 	if (ret) {
 		printf("Failed to initialize board for USB\n");
