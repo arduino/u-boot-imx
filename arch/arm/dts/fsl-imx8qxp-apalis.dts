@@ -237,8 +237,6 @@
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_fec1>;
 	fsl,magic-packet;
-	fsl,rgmii_rxc_dly;
-	fsl,rgmii_txc_dly;
 	phy-handle = <&ethphy0>;
 	phy-mode = "rgmii";
 	phy-reset-duration = <10>;
