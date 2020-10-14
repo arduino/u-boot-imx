@@ -655,7 +655,7 @@ int arch_cpu_init(void)
 	}
 
 	/* Set perclk to source from OSC 24MHz */
-	if (is_mx6sl())
+	if (is_mx6sl() || is_mx6ull())
 		set_preclk_from_osc();
 
 	imx_wdog_disable_powerdown(); /* Disable PDE bit of WMCR register */
