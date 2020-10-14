@@ -17,6 +17,7 @@
 #include <dm.h>
 #include <errno.h>
 #include <fsl_esdhc.h>
+#include <i2c.h>
 #include <malloc.h>
 #include <micrel.h>
 #include <miiphy.h>
@@ -31,8 +32,15 @@
 
 DECLARE_GLOBAL_DATA_PTR;
 
+#define I2C_PMIC	0
+
 #define UART_PAD_CTRL	(PAD_CTL_PUE | PAD_CTL_PE | PAD_CTL_DSE4)
 #define WDOG_PAD_CTRL	(PAD_CTL_DSE6 | PAD_CTL_ODE | PAD_CTL_PUE | PAD_CTL_PE)
+
+typedef enum {
+	PCB_VERSION_1_0,
+	PCB_VERSION_1_1
+} pcb_rev_t;
 
 /* Verdin UART_3, Console/Debug UART */
 static iomux_v3_cfg_t const uart_pads[] = {
@@ -507,18 +515,63 @@ struct display_info_t const displays[] = {{
 size_t display_count = ARRAY_SIZE(displays);
 #endif /* CONFIG_VIDEO_MXS */
 
-int board_late_init(void)
+static pcb_rev_t get_pcb_revision(void)
 {
+	struct udevice *bus;
+	struct udevice *i2c_dev = NULL;
+	int ret;
+	uint8_t is_bd71837 = 0;
+
+	ret = uclass_get_device_by_seq(UCLASS_I2C, I2C_PMIC, &bus);
+	if (!ret)
+		ret = dm_i2c_probe(bus, 0x4b, 0, &i2c_dev);
+	if (!ret)
+		ret = dm_i2c_read(i2c_dev, 0x0, &is_bd71837, 1);
+
+	/* BD71837_REV, High Nibble is major version, fix 1010 */
+	is_bd71837 = !ret && ((is_bd71837 & 0xf0) == 0xa0);
+	return is_bd71837 ? PCB_VERSION_1_0 : PCB_VERSION_1_1;
+}
+
+static void select_dt_from_module_version(void)
+{
+	char variant[32];
+	int is_wifi = 0;
+
 #ifdef CONFIG_TDX_CFG_BLOCK
 	/*
 	 * If we have a valid config block and it says we are a module with
 	 * Wi-Fi/Bluetooth make sure we use the -wifi device tree.
 	 */
-	if (tdx_hw_tag.prodid == VERDIN_IMX8MMQ_WIFI_BT_IT)
-		env_set("variant", "wifi");
-	else
-		env_set("variant", "nonwifi");
+	is_wifi = tdx_hw_tag.prodid == VERDIN_IMX8MMQ_WIFI_BT_IT;
 #endif
+
+	switch(get_pcb_revision()) {
+	case PCB_VERSION_1_0:
+		printf("Detected a V1.0 module\n");
+		if (is_wifi)
+			strncpy(&variant[0], "wifi", sizeof(variant));
+		else
+			strncpy(&variant[0], "nonwifi", sizeof(variant));
+		break;
+	default:
+		if (is_wifi)
+			strncpy(&variant[0], "wifi-v1.1", sizeof(variant));
+		else
+			strncpy(&variant[0], "nonwifi-v1.1", sizeof(variant));
+		break;
+	}
+	printf("Setting variant to %s\n", variant);
+	env_set("variant", variant);
+	env_set("variant1", "bla");
+#ifndef CONFIG_ENV_IS_NOWHERE
+	env_save();
+#endif
+}
+
+int board_late_init(void)
+{
+	select_dt_from_module_version();
 
 	return 0;
 }
