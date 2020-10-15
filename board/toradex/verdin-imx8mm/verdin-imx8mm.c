@@ -536,6 +536,7 @@ static pcb_rev_t get_pcb_revision(void)
 static void select_dt_from_module_version(void)
 {
 	char variant[32];
+	char *env_variant = env_get("variant");
 	int is_wifi = 0;
 
 #ifdef CONFIG_TDX_CFG_BLOCK
@@ -543,7 +544,8 @@ static void select_dt_from_module_version(void)
 	 * If we have a valid config block and it says we are a module with
 	 * Wi-Fi/Bluetooth make sure we use the -wifi device tree.
 	 */
-	is_wifi = tdx_hw_tag.prodid == VERDIN_IMX8MMQ_WIFI_BT_IT;
+	is_wifi = (tdx_hw_tag.prodid == VERDIN_IMX8MMQ_WIFI_BT_IT) ||
+	          (tdx_hw_tag.prodid == VERDIN_IMX8MMDL_WIFI_BT_IT);
 #endif
 
 	switch(get_pcb_revision()) {
@@ -561,12 +563,14 @@ static void select_dt_from_module_version(void)
 			strncpy(&variant[0], "nonwifi-v1.1", sizeof(variant));
 		break;
 	}
-	printf("Setting variant to %s\n", variant);
-	env_set("variant", variant);
-	env_set("variant1", "bla");
+
+	if (strcmp(variant, env_variant)) {
+		printf("Setting variant to %s\n", variant);
+		env_set("variant", variant);
 #ifndef CONFIG_ENV_IS_NOWHERE
-	env_save();
+		env_save();
 #endif
+	}
 }
 
 int board_late_init(void)
