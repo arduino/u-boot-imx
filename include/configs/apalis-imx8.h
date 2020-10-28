@@ -62,8 +62,8 @@
 #define M4_BOOT_ENV \
 	"m4_0_image=m4_0.bin\0" \
 	"m4_1_image=m4_1.bin\0" \
-	"loadm4image_0=fatload mmc ${mmcdev}:${mmcpart} ${loadaddr} ${m4_0_image}\0" \
-	"loadm4image_1=fatload mmc ${mmcdev}:${mmcpart} ${loadaddr} ${m4_1_image}\0" \
+	"loadm4image_0=${load_cmd} ${loadaddr} ${m4_0_image}\0" \
+	"loadm4image_1=${load_cmd} ${loadaddr} ${m4_1_image}\0" \
 	"m4boot_0=run loadm4image_0; dcache flush; bootaux ${loadaddr} 0\0" \
 	"m4boot_1=run loadm4image_1; dcache flush; bootaux ${loadaddr} 1\0" \
 
@@ -99,7 +99,7 @@
 	"fdtfile=" FDT_FILE "\0" \
 	"finduuid=part uuid mmc ${mmcdev}:2 uuid\0" \
 	"hdp_file=hdmitxfw.bin\0" \
-	"loadhdp=fatload mmc ${mmcdev}:${mmcpart} ${hdp_addr} ${hdp_file}\0" \
+	"loadhdp=${load_cmd} ${hdp_addr} ${hdp_file}\0" \
 	"mmcautodetect=yes\0" \
 	"mmcargs=setenv bootargs console=${console},${baudrate} " \
 		"root=PARTUUID=${uuid} rootwait " \
