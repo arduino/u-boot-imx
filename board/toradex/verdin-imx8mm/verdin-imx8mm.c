@@ -34,6 +34,7 @@ DECLARE_GLOBAL_DATA_PTR;
 
 #define I2C_PMIC	0
 
+#define GPIO_PAD_CTRL	(PAD_CTL_HYS | PAD_CTL_PUE | PAD_CTL_PE | PAD_CTL_DSE4)
 #define UART_PAD_CTRL	(PAD_CTL_PUE | PAD_CTL_PE | PAD_CTL_DSE4)
 #define WDOG_PAD_CTRL	(PAD_CTL_DSE6 | PAD_CTL_ODE | PAD_CTL_PUE | PAD_CTL_PE)
 
@@ -49,7 +50,11 @@ static iomux_v3_cfg_t const uart_pads[] = {
 };
 
 static iomux_v3_cfg_t const wdog_pads[] = {
-	IMX8MM_PAD_GPIO1_IO02_WDOG1_WDOG_B  | MUX_PAD_CTRL(WDOG_PAD_CTRL),
+	IMX8MM_PAD_GPIO1_IO02_WDOG1_WDOG_B | MUX_PAD_CTRL(WDOG_PAD_CTRL),
+};
+
+static iomux_v3_cfg_t const sleep_moci_pads[] = {
+	IMX8MM_PAD_SAI3_TXD_GPIO5_IO1 | MUX_PAD_CTRL(GPIO_PAD_CTRL),
 };
 
 int board_early_init_f(void)
@@ -417,6 +422,11 @@ static void select_dt_from_module_version(void)
 int board_late_init(void)
 {
 	select_dt_from_module_version();
+
+	/* Power up carrier board HW, e.g. USB */
+	imx_iomux_v3_setup_multiple_pads(sleep_moci_pads, ARRAY_SIZE(sleep_moci_pads));
+	gpio_request(IMX_GPIO_NR(5, 1), "SLEEP_MOCI#");
+	gpio_direction_output(IMX_GPIO_NR(5, 1), 1);
 
 	return 0;
 }
