@@ -81,6 +81,12 @@ static int fiovb_provisioned(void)
 #define SECURE_FUSE_BANK	(29)
 #define SECURE_FUSE_WORD	(6)
 #define SECURE_FUSE_VALUE	(0x80000000)
+#elif CONFIG_ARCH_MX6
+#define SRK_FUSE_LIST								\
+{ 3, 0 }, { 3, 1 }, { 3, 2}, { 3, 3 }, { 3, 4 }, { 3, 5}, { 3, 6 }, { 3 ,7 },
+#define SECURE_FUSE_BANK	(0)
+#define SECURE_FUSE_WORD	(6)
+#define SECURE_FUSE_VALUE	(0x00000002)
 #else
 #error "SoC not supported"
 #endif
