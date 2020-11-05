@@ -363,9 +363,12 @@ static int rsa_verify_with_keynode(struct image_sign_info *info,
 				   uint sig_len, int node)
 {
 	const void *blob = info->fdt_blob;
-	struct key_prop prop;
+	struct key_prop prop = { 0 };
 	int length;
 	int ret = 0;
+#if defined(CONFIG_SPL_RSA)
+	uint64_t val;
+#endif
 
 	if (node < 0) {
 		debug("%s: Skipping invalid node", __func__);
@@ -380,6 +383,11 @@ static int rsa_verify_with_keynode(struct image_sign_info *info,
 	if (!prop.public_exponent || length < sizeof(uint64_t))
 		prop.public_exponent = NULL;
 
+#if defined(CONFIG_SPL_RSA)
+	/* work around alignment issues */
+	memcpy(&val, prop.public_exponent, sizeof(val));
+	prop.public_exponent = (void *)&val;
+#endif
 	prop.exp_len = sizeof(uint64_t);
 
 	prop.modulus = fdt_getprop(blob, node, "rsa,modulus", NULL);
