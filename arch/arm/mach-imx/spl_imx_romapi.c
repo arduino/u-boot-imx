@@ -226,7 +226,7 @@ static int spl_romapi_load_image_stream(struct spl_image_info *spl_image,
 	}
 
 	imagesize = fit_get_size(pfit);
-	printf("Find FIT header 0x&%p, size %d\n", pfit, imagesize);
+	printf("Find FIT header 0x%p, size %d\n", pfit, imagesize);
 
 	if (p - pfit < imagesize) {
 		imagesize -= p - pfit;
