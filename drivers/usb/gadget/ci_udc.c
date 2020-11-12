@@ -1316,16 +1316,12 @@ int __weak board_ci_udc_phy_mode(void *__iomem phy_base, int phy_off)
 	u32 val;
 
 	if (is_mx6() || is_mx7ulp() || is_imx8()) {
-		printf("We are in is_imx8\n");
 		phy_base = (void __iomem *)fdtdec_get_addr(gd->fdt_blob,
 							   phy_off,
 							   "reg");
-		if ((fdt_addr_t)phy_base == FDT_ADDR_T_NONE) {
-			printf("(fdt_addr_t)phy_base == fdt_addr_t_none)\n");
+		if ((fdt_addr_t)phy_base == FDT_ADDR_T_NONE)
 			return -EINVAL;
-		}
 
-		printf("Getting phy ctrl\n");
 		phy_ctrl = (void __iomem *)(phy_base + USBPHY_CTRL);
 		val = readl(phy_ctrl);
 		if (val & USBPHY_CTRL_OTG_ID)
