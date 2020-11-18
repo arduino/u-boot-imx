@@ -197,33 +197,34 @@ void enable_caches(void)
 	dcache_enable();
 }
 
-__weak int board_phys_sdram_size(phys_size_t *size)
+__weak int board_phys_sdram_size(phys_size_t *bank1_size, phys_size_t *bank2_size)
 {
-	if (!size)
+	if (!bank1_size || !bank2_size)
 		return -EINVAL;
 
-	*size = PHYS_SDRAM_SIZE;
+	*bank1_size = PHYS_SDRAM_SIZE;
+#ifdef PHYS_SDRAM_2_SIZE
+	*bank2_size = PHYS_SDRAM_2_SIZE;
+#endif
 	return 0;
 }
 
 int dram_init(void)
 {
-	phys_size_t sdram_size;
+	phys_size_t sdram1_size, sdram2_size = 0;
 	int ret;
 
-	ret = board_phys_sdram_size(&sdram_size);
+	ret = board_phys_sdram_size(&sdram1_size, &sdram2_size);
 	if (ret)
 		return ret;
 
 	/* rom_pointer[1] contains the size of TEE occupies */
 	if (rom_pointer[1])
-		gd->ram_size = sdram_size - rom_pointer[1];
+		gd->ram_size = sdram1_size - rom_pointer[1];
 	else
-		gd->ram_size = sdram_size;
+		gd->ram_size = sdram1_size;
 
-#ifdef PHYS_SDRAM_2_SIZE
-	gd->ram_size += PHYS_SDRAM_2_SIZE;
-#endif
+	gd->ram_size += sdram2_size;
 
 	return 0;
 }
@@ -232,9 +233,9 @@ int dram_init_banksize(void)
 {
 	int bank = 0;
 	int ret;
-	phys_size_t sdram_size;
+	phys_size_t sdram1_size, sdram2_size = 0;
 
-	ret = board_phys_sdram_size(&sdram_size);
+	ret = board_phys_sdram_size(&sdram1_size, &sdram2_size);
 	if (ret)
 		return ret;
 
@@ -244,7 +245,7 @@ int dram_init_banksize(void)
 		phys_size_t optee_size = (size_t)rom_pointer[1];
 
 		gd->bd->bi_dram[bank].size = optee_start -gd->bd->bi_dram[bank].start;
-		if ((optee_start + optee_size) < (PHYS_SDRAM + sdram_size)) {
+		if ((optee_start + optee_size) < (PHYS_SDRAM + sdram1_size)) {
 			if ( ++bank >= CONFIG_NR_DRAM_BANKS) {
 				puts("CONFIG_NR_DRAM_BANKS is not enough\n");
 				return -1;
@@ -252,19 +253,21 @@ int dram_init_banksize(void)
 
 			gd->bd->bi_dram[bank].start = optee_start + optee_size;
 			gd->bd->bi_dram[bank].size = PHYS_SDRAM +
-				sdram_size - gd->bd->bi_dram[bank].start;
+				sdram1_size - gd->bd->bi_dram[bank].start;
 		}
 	} else {
-		gd->bd->bi_dram[bank].size = sdram_size;
+		gd->bd->bi_dram[bank].size = sdram1_size;
 	}
 
 #ifdef PHYS_SDRAM_2_SIZE
-	if ( ++bank >= CONFIG_NR_DRAM_BANKS) {
-		puts("CONFIG_NR_DRAM_BANKS is not enough for SDRAM_2\n");
-		return -1;
+	if (sdram2_size) {
+		if ( ++bank >= CONFIG_NR_DRAM_BANKS) {
+			puts("CONFIG_NR_DRAM_BANKS is not enough for SDRAM_2\n");
+			return -1;
+		}
+		gd->bd->bi_dram[bank].start = PHYS_SDRAM_2;
+		gd->bd->bi_dram[bank].size = sdram2_size;
 	}
-	gd->bd->bi_dram[bank].start = PHYS_SDRAM_2;
-	gd->bd->bi_dram[bank].size = PHYS_SDRAM_2_SIZE;
 #endif
 
 	return 0;
@@ -272,15 +275,18 @@ int dram_init_banksize(void)
 
 phys_size_t get_effective_memsize(void)
 {
+	int ret;
+	phys_size_t sdram1_size, sdram2_size = 0;
+
 	/* return the first bank as effective memory */
 	if (rom_pointer[1])
 		return ((phys_addr_t)rom_pointer[0] - PHYS_SDRAM);
 
-#ifdef PHYS_SDRAM_2_SIZE
-	return gd->ram_size - PHYS_SDRAM_2_SIZE;
-#else
-	return gd->ram_size;
-#endif
+	ret = board_phys_sdram_size(&sdram1_size, &sdram2_size);
+	if (ret)
+		return 0;
+
+	return sdram1_size;
 }
 
 static u32 get_cpu_variant_type(u32 type)
