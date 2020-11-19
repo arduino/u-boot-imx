@@ -431,12 +431,13 @@ int board_late_init(void)
 	return 0;
 }
 
-int board_phys_sdram_size(phys_size_t *size)
+int board_phys_sdram_size(phys_size_t *bank1_size, phys_size_t *bank2_size)
 {
-	if (!size)
+	if (!bank1_size || !bank2_size)
 	return -EINVAL;
 
-	*size = get_ram_size((void *)PHYS_SDRAM, PHYS_SDRAM_SIZE);
+	*bank1_size = get_ram_size((void *)PHYS_SDRAM, PHYS_SDRAM_SIZE);
+	*bank2_size = 0;
 	return 0;
 }
 
