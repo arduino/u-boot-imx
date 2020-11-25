@@ -57,7 +57,7 @@ struct fdt_region;
 #include <hash.h>
 #include <linux/libfdt.h>
 #include <fdt_support.h>
-# ifdef CONFIG_SPL_BUILD
+# if defined(CONFIG_SPL_BUILD) && !defined(CONFIG_SPL_FIT_SIGNATURE_STRICT)
 #  ifdef CONFIG_SPL_CRC32_SUPPORT
 #   define IMAGE_ENABLE_CRC32	1
 #  endif
@@ -67,7 +67,7 @@ struct fdt_region;
 #  ifdef CONFIG_SPL_SHA1_SUPPORT
 #   define IMAGE_ENABLE_SHA1	1
 #  endif
-# else
+# elif !defined(CONFIG_SPL_BUILD) && !defined(CONFIG_FIT_SIGNATURE_STRICT)
 #  define IMAGE_ENABLE_CRC32	1
 #  define IMAGE_ENABLE_MD5	1
 #  define IMAGE_ENABLE_SHA1	1

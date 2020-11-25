@@ -403,7 +403,7 @@ config SPL_CRC32_SUPPORT
 
 config SPL_MD5_SUPPORT
 	bool "Support MD5"
-	depends on SPL_FIT
+	depends on SPL_FIT && !SPL_FIT_SIGNATURE_STRICT
 	help
 	  Enable this to support MD5 in FIT images within SPL. An MD5
 	  checksum is a 128-bit hash value used to check that the image
@@ -415,7 +415,7 @@ config SPL_MD5_SUPPORT
 
 config SPL_SHA1_SUPPORT
 	bool "Support SHA1"
-	depends on SPL_FIT
+	depends on SPL_FIT && !SPL_FIT_SIGNATURE_STRICT
 	select SHA1
 	help
 	  Enable this to support SHA1 in FIT images within SPL. A SHA1
@@ -481,7 +481,7 @@ config SPL_CRYPTO_SUPPORT
 
 config SPL_HASH_SUPPORT
 	bool "Support hashing drivers"
-	select SHA1
+	select SHA1 if !SPL_FIT_SIGNATURE_STRICT
 	select SHA256
 	help
 	  Enable hashing drivers in SPL. These drivers can be used to
@@ -492,7 +492,7 @@ config SPL_HASH_SUPPORT
 config TPL_HASH_SUPPORT
 	bool "Support hashing drivers in TPL"
 	depends on TPL
-	select SHA1
+	select SHA1 if !SPL_FIT_SIGNATURE_STRICT
 	select SHA256
 	help
 	  Enable hashing drivers in SPL. These drivers can be used to

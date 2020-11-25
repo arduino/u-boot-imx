@@ -324,8 +324,10 @@ config ANDROID_BOOT_IMAGE
 
 config FIT
 	bool "Support Flattened Image Tree"
-	select MD5
-	select SHA1
+	select MD5 if (!SPL_BUILD && !FIT_SIGNATURE_STRICT) || \
+		      (SPL_BUILD && !SPL_FIT_SIGNATURE_STRICT)
+	select SHA1 if (!SPL_BUILD && !FIT_SIGNATURE_STRICT) || \
+		       (SPL_BUILD && !SPL_FIT_SIGNATURE_STRICT)
 	help
 	  This option allows you to boot the new uImage structure,
 	  Flattened Image Tree.  FIT is formally a FDT, which can include

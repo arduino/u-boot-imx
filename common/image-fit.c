@@ -1191,6 +1191,8 @@ int fit_set_timestamp(void *fit, int noffset, time_t timestamp)
 int calculate_hash(const void *data, int data_len, const char *algo,
 			uint8_t *value, int *value_len)
 {
+#if (!defined(CONFIG_SPL_BUILD) && !defined(CONFIG_FIT_SIGNATURE_STRICT)) || \
+    (defined(CONFIG_SPL_BUILD) && !defined(CONFIG_SPL_FIT_SIGNATURE_STRICT))
 	if (IMAGE_ENABLE_CRC32 && strcmp(algo, "crc32") == 0) {
 		*((uint32_t *)value) = crc32_wd(0, data, data_len,
 							CHUNKSZ_CRC32);
@@ -1200,13 +1202,18 @@ int calculate_hash(const void *data, int data_len, const char *algo,
 		sha1_csum_wd((unsigned char *)data, data_len,
 			     (unsigned char *)value, CHUNKSZ_SHA1);
 		*value_len = 20;
-	} else if (IMAGE_ENABLE_SHA256 && strcmp(algo, "sha256") == 0) {
+	} else
+#endif
+	if (IMAGE_ENABLE_SHA256 && strcmp(algo, "sha256") == 0) {
 		sha256_csum_wd((unsigned char *)data, data_len,
 			       (unsigned char *)value, CHUNKSZ_SHA256);
 		*value_len = SHA256_SUM_LEN;
+#if (!defined(CONFIG_SPL_BUILD) && !defined(CONFIG_FIT_SIGNATURE_STRICT)) || \
+    (defined(CONFIG_SPL_BUILD) && !defined(CONFIG_SPL_FIT_SIGNATURE_STRICT))
 	} else if (IMAGE_ENABLE_MD5 && strcmp(algo, "md5") == 0) {
 		md5_wd((unsigned char *)data, data_len, value, CHUNKSZ_MD5);
 		*value_len = 16;
+#endif
 	} else {
 		debug("Unsupported hash alogrithm\n");
 		return -1;

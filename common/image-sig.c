@@ -31,6 +31,8 @@ void *image_get_host_blob(void)
 #endif
 
 struct checksum_algo checksum_algos[] = {
+#if (!defined(CONFIG_SPL_BUILD) && !defined(CONFIG_FIT_SIGNATURE_STRICT)) || \
+    (defined(CONFIG_SPL_BUILD) && !defined(CONFIG_SPL_FIT_SIGNATURE_STRICT))
 	{
 		.name = "sha1",
 		.checksum_len = SHA1_SUM_LEN,
@@ -41,6 +43,7 @@ struct checksum_algo checksum_algos[] = {
 #endif
 		.calculate = hash_calculate,
 	},
+#endif
 	{
 		.name = "sha256",
 		.checksum_len = SHA256_SUM_LEN,
