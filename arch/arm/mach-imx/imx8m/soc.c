@@ -657,8 +657,6 @@ static int disable_fdt_nodes(void *blob, const char *nodes_path[], int size_arra
 		if (nodeoff < 0)
 			continue; /* Not found, skip it */
 
-		printf("Found %s node\n", nodes_path[i]);
-
 add_status:
 		rc = fdt_setprop(blob, nodeoff, "status", status, strlen(status) + 1);
 		if (rc) {
@@ -987,8 +985,6 @@ static int disable_cpu_nodes(void *blob, u32 disabled_cores)
 		nodeoff = fdt_path_offset(blob, nodes_path[i]);
 		if (nodeoff < 0)
 			continue; /* Not found, skip it */
-
-		printf("Found %s node\n", nodes_path[i]);
 
 		rc = fdt_del_node(blob, nodeoff);
 		if (rc < 0) {
