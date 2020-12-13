@@ -94,10 +94,10 @@
 		#address-cells = <1>;
 		#size-cells = <0>;
 
-		ethphy1: ethernet-phy@3 {
+		ethphy1: ethernet-phy@7 {
 			compatible = "ethernet-phy-ieee802.3-c22";
-			reg = <3>;
 			micrel,led-mode = <0>;
+			reg = <7>;
 		};
 	};
 };
