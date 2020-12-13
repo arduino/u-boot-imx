@@ -47,16 +47,11 @@
 #if defined(CONFIG_CMD_NET)
 #define CONFIG_ETHPRIME			"eth1" /* eqos is on-module Ethernet interface */
 
-#define CONFIG_FEC_XCV_TYPE		RGMII
-#define CONFIG_FEC_MXC_PHYADDR		3
 #define FEC_QUIRK_ENET_MAC
 
 #ifdef CONFIG_DWC_ETH_QOS
 #define CONFIG_SYS_NONCACHED_MEMORY	(1 * SZ_1M) /* 1M */
 #endif
-
-#define PHY_ANEG_TIMEOUT		20000
-
 #endif /* CONFIG_CMD_NET */
 
 #define MEM_LAYOUT_ENV_SETTINGS \
