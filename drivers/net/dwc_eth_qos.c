@@ -38,6 +38,7 @@
 #include <net.h>
 #include <netdev.h>
 #include <phy.h>
+#include <power/regulator.h>
 #include <reset.h>
 #include <wait_bit.h>
 #include <asm/arch/clock.h>
@@ -325,6 +326,7 @@ struct eqos_priv {
 	struct clk clk_slave_bus;
 	struct mii_dev *mii;
 	struct phy_device *phy;
+	struct udevice *phy_supply;
 	void *descs;
 	struct eqos_desc *tx_descs;
 	struct eqos_desc *rx_descs;
@@ -1693,6 +1695,16 @@ static int eqos_probe_resources_core(struct udevice *dev)
 	}
 	debug("%s: rx_pkt=%p\n", __func__, eqos->rx_pkt);
 
+#ifdef CONFIG_DM_REGULATOR
+	if (eqos->phy_supply) {
+		ret = regulator_set_enable(eqos->phy_supply, true);
+		if (ret) {
+			printf("%s: Error enabling phy supply\n", dev->name);
+			goto err_free_rx_dma_buf;
+		}
+	}
+#endif
+
 	debug("%s: OK\n", __func__);
 	return 0;
 
@@ -1713,6 +1725,11 @@ static int eqos_remove_resources_core(struct udevice *dev)
 	struct eqos_priv *eqos = dev_get_priv(dev);
 
 	debug("%s(dev=%p):\n", __func__, dev);
+
+#ifdef CONFIG_DM_REGULATOR
+	if (eqos->phy_supply)
+		regulator_set_enable(eqos->phy_supply, false);
+#endif
 
 	free(eqos->rx_pkt);
 	free(eqos->rx_dma_buf);
@@ -2056,6 +2073,10 @@ static int eqos_probe(struct udevice *dev)
 	eqos->mtl_regs = (void *)(eqos->regs + EQOS_MTL_REGS_BASE);
 	eqos->dma_regs = (void *)(eqos->regs + EQOS_DMA_REGS_BASE);
 	eqos->tegra186_regs = (void *)(eqos->regs + EQOS_TEGRA186_REGS_BASE);
+
+#ifdef CONFIG_DM_REGULATOR
+	device_get_supply_regulator(dev, "phy-supply", &eqos->phy_supply);
+#endif
 
 	ret = eqos_probe_resources_core(dev);
 	if (ret < 0) {
