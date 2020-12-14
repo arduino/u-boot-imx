@@ -41,13 +41,19 @@ static int fiovb_provisioned(void)
 	char len_str[32] = { '\0' };
 	struct fiovb_ops *sec;
 	int ret;
+	unsigned int fiohab_dev = env_get_ulong("fiohab_dev", 10, 0xFFUL);
 
-	if (!init_mmc_device(0, false)) {
+	if (fiohab_dev == 0xFFUL) {
+		printf("fiohav_dev var is not defined!\n");
+		return -EINVAL;
+	}
+
+	if (!init_mmc_device(fiohab_dev, false)) {
 		printf("Cant init MMC - RPMB not available\n");
 		return -1;
 	}
 
-	sec = fiovb_ops_alloc(0);
+	sec = fiovb_ops_alloc(fiohab_dev);
 	if (!sec) {
 		printf("Not enough memory to allocate ops\n");
 		return -ENOMEM;
