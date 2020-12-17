@@ -79,6 +79,14 @@ config IMX_HAB
 	  This option enables the support for secure boot (HAB).
 	  See doc/README.mxc_hab for more details.
 
+config SPL_IMX_HAB
+	bool "Support i.MX HAB features in SPL"
+	default y if IMX_HAB
+	depends on ARCH_MX7 || ARCH_MX6 || ARCH_MX5 || ARCH_MX7ULP || ARCH_IMX8M
+	help
+	  This option enables the support for secure boot (HAB) in SPL.
+	  See doc/README.mxc_hab for more details.
+
 config CSF_SIZE
 	hex "Maximum size for Command Sequence File (CSF) binary"
 	default 0x2060

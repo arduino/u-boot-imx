@@ -16,7 +16,7 @@ endif
 obj-y += mmc_env.o
 obj-$(CONFIG_FEC_MXC) += mac.o
 obj-$(CONFIG_SYS_I2C_MXC) += i2c-mxv7.o
-obj-$(CONFIG_IMX_HAB) += hab.o
+obj-$(CONFIG_$(SPL_)IMX_HAB) += hab.o
 obj-y += cpu.o
 endif
 
@@ -55,16 +55,16 @@ ifneq ($(CONFIG_SPL_BUILD),y)
 obj-$(CONFIG_IMX_BOOTAUX) += imx_bootaux.o
 endif
 obj-$(CONFIG_SATA) += sata.o
-obj-$(CONFIG_IMX_HAB)    += hab.o
+obj-$(CONFIG_$(SPL_)IMX_HAB)    += hab.o
 obj-$(CONFIG_SYSCOUNTER_TIMER) += syscounter.o
 obj-$(CONFIG_IMX_TRUSTY_OS) += trusty.o
 endif
 ifeq ($(SOC),$(filter $(SOC),mx7ulp))
 obj-y  += cache.o mmdc_size.o
-obj-$(CONFIG_IMX_HAB) += hab.o
+obj-$(CONFIG_$(SPL_)IMX_HAB) += hab.o
 endif
 ifeq ($(SOC),$(filter $(SOC),mx6 mx7ulp))
-obj-$(CONFIG_IMX_HAB) += fiohab.o
+obj-$(CONFIG_$(SPL_)IMX_HAB) += fiohab.o
 endif
 ifeq ($(SOC),$(filter $(SOC),vf610))
 obj-y += ddrmc-vf610.o

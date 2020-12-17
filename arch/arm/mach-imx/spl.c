@@ -267,7 +267,7 @@ u32 spl_boot_mode(const u32 boot_device)
 }
 #endif
 
-#if defined(CONFIG_IMX_HAB)
+#if defined(CONFIG_SPL_IMX_HAB)
 
 /*
  * +------------+  0x0 (DDR_UIMAGE_START) -
