@@ -174,6 +174,7 @@ int board_init(void)
 #ifdef CONFIG_MXC_GPIO
 	board_gpio_init();
 #endif
+	gpio_request(USB_CDET_GPIO, "usb_cdet");
 
 #ifdef CONFIG_SNVS_SEC_SC_AUTO
 	{
