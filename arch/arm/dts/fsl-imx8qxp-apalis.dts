@@ -43,6 +43,15 @@
 	};
 };
 
+&gpio4 {
+	usb_host_vbus {
+		gpio-hog;
+		gpios = <4 GPIO_ACTIVE_HIGH>;
+		output-high;
+		line-name = "USBH_EN";
+	};
+};
+
 &iomuxc {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_hog0>, <&pinctrl_hog1>, <&pinctrl_reset_moci>, <&pinctrl_usbh_en>;
@@ -272,6 +281,7 @@
 };
 
 &usbotg3 {
+	dr_mode = "host";
 	status = "okay";
 };
 
