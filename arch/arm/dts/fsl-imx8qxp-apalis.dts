@@ -45,7 +45,7 @@
 
 &iomuxc {
 	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_hog0>, <&pinctrl_hog1>, <&pinctrl_reset_moci>;
+	pinctrl-0 = <&pinctrl_hog0>, <&pinctrl_hog1>, <&pinctrl_reset_moci>, <&pinctrl_usbh_en>;
 
 	apalis-imx8x {
 		/* Apalis UART1 */
@@ -177,7 +177,7 @@
 		/* Apalis USBH_EN */
 		pinctrl_usbh_en: usbhen {
 			fsl,pins = <
-				SC_P_USB_SS3_TC1_LSIO_GPIO4_IO04	0x40		/* SODIMM 84 */
+				SC_P_USB_SS3_TC1_LSIO_GPIO4_IO04		0x40		/* SODIMM 84 */
 			>;
 		};
 
