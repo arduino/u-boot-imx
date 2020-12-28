@@ -170,6 +170,7 @@
 };
 
 &usbotg1 {
+	dr_mode = "otg";
 	u-boot,dm-pre-proper;
 };
 
