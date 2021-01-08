@@ -39,16 +39,14 @@ DECLARE_GLOBAL_DATA_PTR;
 #define UART_PAD_CTRL	((SC_PAD_CONFIG_OUT_IN << PADRING_CONFIG_SHIFT) | (SC_PAD_ISO_OFF << PADRING_LPCONFIG_SHIFT) \
 						| (SC_PAD_28FDSOI_DSE_DV_HIGH << PADRING_DSE_SHIFT) | (SC_PAD_28FDSOI_PS_PU << PADRING_PULL_SHIFT))
 
-static iomux_cfg_t uart3_pads[] = {
-	SC_P_FLEXCAN2_RX | MUX_MODE_ALT(2) | MUX_PAD_CTRL(UART_PAD_CTRL),
-	SC_P_FLEXCAN2_TX | MUX_MODE_ALT(2) | MUX_PAD_CTRL(UART_PAD_CTRL),
-	/* Transceiver FORCEOFF# signal, mux to use pullup */
-	SC_P_QSPI0B_DQS | MUX_MODE_ALT(4) | MUX_PAD_CTRL(UART_PAD_CTRL),
+static iomux_cfg_t uart1_pads[] = {
+	SC_P_UART1_RX | MUX_PAD_CTRL(UART_PAD_CTRL),
+	SC_P_UART1_TX | MUX_PAD_CTRL(UART_PAD_CTRL),
 };
 
 static void setup_iomux_uart(void)
 {
-	imx8_iomux_setup_multiple_pads(uart3_pads, ARRAY_SIZE(uart3_pads));
+	imx8_iomux_setup_multiple_pads(uart1_pads, ARRAY_SIZE(uart1_pads));
 }
 
 int board_early_init_f(void)
@@ -57,7 +55,7 @@ int board_early_init_f(void)
 	int ret;
 
 	/*
-	 * This works around that having only UART3 up the baudrate is 1.2M
+	 * This works around that having only UART1 up the baudrate is 1.2M
 	 * instead of 115.2k. Set UART0 clock root to 80 MHz
 	 */
 	ret = sc_pm_setup_uart(SC_R_UART_0, rate);
@@ -65,7 +63,7 @@ int board_early_init_f(void)
 		return ret;
 
 	/* Set UART0 clock root to 80 MHz */
-	ret = sc_pm_setup_uart(SC_R_UART_3, rate);
+	ret = sc_pm_setup_uart(SC_R_UART_1, rate);
 	if (ret)
 		return ret;
 
@@ -80,14 +78,6 @@ int board_early_init_f(void)
 
 int board_phy_config(struct phy_device *phydev)
 {
-	phy_write(phydev, MDIO_DEVAD_NONE, 0x1d, 0x1f);
-	phy_write(phydev, MDIO_DEVAD_NONE, 0x1e, 0x8);
-
-	phy_write(phydev, MDIO_DEVAD_NONE, 0x1d, 0x00);
-	phy_write(phydev, MDIO_DEVAD_NONE, 0x1e, 0x82ee);
-	phy_write(phydev, MDIO_DEVAD_NONE, 0x1d, 0x05);
-	phy_write(phydev, MDIO_DEVAD_NONE, 0x1e, 0x100);
-
 	if (phydev->drv->config)
 		phydev->drv->config(phydev);
 
@@ -130,37 +120,6 @@ static void board_gpio_init(void)
 }
 #endif
 
-int checkboard(void)
-{
-	puts("Board: Colibri iMX8QXP \n");
-
-	print_bootinfo();
-
-	return 0;
-}
-
-/* Only Enable USB3 resources currently */
-int board_usb_init(int index, enum usb_init_type init)
-{
-	struct power_domain pd;
-	int ret = 0;
-
-	/* Power on usb */
-	if (!power_domain_lookup_name("conn_usb2", &pd)) {
-		ret = power_domain_on(&pd);
-		if (ret)
-			printf("conn_usb2 Power up failed! (error = %d)\n", ret);
-	}
-
-	if (!power_domain_lookup_name("conn_usb2_phy", &pd)) {
-		ret = power_domain_on(&pd);
-		if (ret)
-			printf("conn_usb2_phy Power up failed! (error = %d)\n", ret);
-	}
-
-	return ret;
-}
-
 int board_init(void)
 {
 #ifdef CONFIG_MXC_GPIO
@@ -179,10 +138,12 @@ int board_init(void)
 	return 0;
 }
 
+/* With this function there is no console output in linux, drop that for now */
+#if 0
 void board_quiesce_devices(void)
 {
 	const char *power_on_devices[] = {
-		"dma_lpuart3",
+		"dma_lpuart1",
 
 		/* HIFI DSP boot */
 		"audio_sai0",
@@ -191,6 +152,7 @@ void board_quiesce_devices(void)
 
 	power_off_pd_devices(power_on_devices, ARRAY_SIZE(power_on_devices));
 }
+#endif
 
 void detail_board_ddr_info(void)
 {
@@ -223,7 +185,7 @@ int board_late_init(void)
 {
 #ifdef CONFIG_ENV_VARS_UBOOT_RUNTIME_CONFIG
 /* TODO move to common */
-	env_set("board_name", "Colibri iMX8QXP");
+	env_set("board_name", "Apalis iMX8QXP");
 	env_set("board_rev", "v1.0");
 #endif
 
