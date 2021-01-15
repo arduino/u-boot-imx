@@ -361,7 +361,8 @@ void* board_spl_fit_buffer_addr(ulong fit_size, int sectors, int bl_len)
 }
 #endif
 
-#if defined(CONFIG_MX6) && defined(CONFIG_SPL_OS_BOOT)
+#if defined(CONFIG_MX6) && (defined(CONFIG_SPL_OS_BOOT) || \
+		defined(CONFIG_SPL_ATF) || defined(CONFIG_SPL_OPTEE))
 int dram_init_banksize(void)
 {
 	gd->bd->bi_dram[0].start = CONFIG_SYS_SDRAM_BASE;
