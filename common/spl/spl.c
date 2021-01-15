@@ -60,7 +60,7 @@ binman_sym_declare(ulong, spl, size);
 __weak void show_boot_progress(int val) {}
 
 #if defined(CONFIG_SPL_OS_BOOT) || CONFIG_IS_ENABLED(HANDOFF) || \
-	defined(CONFIG_SPL_ATF)
+	defined(CONFIG_SPL_ATF) || defined(CONFIG_SPL_OPTEE)
 /* weak, default platform-specific function to initialize dram banks */
 __weak int dram_init_banksize(void)
 {
@@ -665,7 +665,7 @@ void board_init_r(gd_t *dummy1, ulong dummy2)
 #endif
 
 	if (IS_ENABLED(CONFIG_SPL_OS_BOOT) || CONFIG_IS_ENABLED(HANDOFF) ||
-	    IS_ENABLED(CONFIG_SPL_ATF))
+	    IS_ENABLED(CONFIG_SPL_ATF) || IS_ENABLED(CONFIG_SPL_OPTEE))
 		dram_init_banksize();
 
 	bootcount_inc();
@@ -714,6 +714,7 @@ void board_init_r(gd_t *dummy1, ulong dummy2)
 #if CONFIG_IS_ENABLED(OPTEE)
 	case IH_OS_TEE:
 		debug("Jumping to U-Boot via OP-TEE\n");
+		spl_fixup_fdt(spl_image.fdt_addr);
 		jump_to_image_optee(&spl_image);
 		break;
 #endif
