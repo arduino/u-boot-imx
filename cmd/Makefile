@@ -181,6 +181,9 @@ obj-$(CONFIG_CMD_AVB) += avb.o
 # Foundries.IO Verified Boot
 obj-$(CONFIG_CMD_FIOVB) += fiovb.o
 
+# Foundries.IO SCP03
+obj-$(CONFIG_CMD_SCP03) += scp03.o
+
 obj-$(CONFIG_ARM) += arm/
 obj-$(CONFIG_RISCV) += riscv/
 obj-$(CONFIG_X86) += x86/

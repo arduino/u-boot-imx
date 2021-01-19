@@ -2183,6 +2183,16 @@ config CMD_FIOVB
 	    fiovb write_rb - write rollback index
 	    fiovb write_pvalue - write to RPMB
 	    fiovb read_pvalue - read from RPMB
+
+config CMD_SCP03
+	bool "scp03 - SCP03 enable and rotate/provision operations"
+	depends on SCP03
+	default y
+	help
+	  Enables the SCP03 commands to activate I2C channel encryption and
+	  provision the SCP03 keys (on boards in the secure state)
+	    scp03 enable
+	    scp03 provision
 endmenu
 
 config CMD_UBI
