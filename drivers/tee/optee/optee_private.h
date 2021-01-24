@@ -19,8 +19,8 @@
  */
 struct optee_private {
 	struct mmc *rpmb_mmc;
-	int rpmb_dev_id;
 	int rpmb_original_part;
+	bool rpmb_inited;
 };
 
 struct optee_msg_arg;
