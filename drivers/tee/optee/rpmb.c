@@ -45,73 +45,88 @@ static void release_mmc(struct optee_private *priv)
 {
 	int rc;
 
-	if (!priv->rpmb_mmc)
+	if (!priv->rpmb_mmc || !priv->rpmb_inited)
 		return;
 
-	rc = blk_select_hwpart_devnum(IF_TYPE_MMC, priv->rpmb_dev_id,
-				      priv->rpmb_original_part);
+	rc = mmc_switch_part(priv->rpmb_mmc, priv->rpmb_original_part);
 	if (rc)
 		debug("%s: blk_select_hwpart_devnum() failed: %d\n",
 		      __func__, rc);
 
-	priv->rpmb_mmc = NULL;
+	priv->rpmb_inited = false;
+}
+
+static int check_mmc(struct mmc *mmc)
+{
+	if (!mmc) {
+		debug("Cannot find RPMB device\n");
+		return -ENODEV;
+	}
+	if (!(mmc->version & MMC_VERSION_MMC)) {
+		debug("Device id is not an eMMC device\n");
+		return -ENODEV;
+	}
+	if (mmc->version < MMC_VERSION_4_41) {
+		debug("RPMB is not supported before version 4.41\n");
+		return -ENODEV;
+	}
+
+	return 0;
 }
 
 static struct mmc *get_mmc(struct optee_private *priv, int dev_id)
 {
-	struct mmc *mmc;
 	int rc;
 
-	if (priv->rpmb_mmc && priv->rpmb_dev_id == dev_id)
+	if (priv->rpmb_mmc && priv->rpmb_inited)
 		return priv->rpmb_mmc;
 
 	release_mmc(priv);
 
-	mmc = find_mmc_device(dev_id);
-	if (!mmc) {
-		debug("Cannot find RPMB device\n");
-		return NULL;
-	}
-	if (!(mmc->version & MMC_VERSION_MMC)) {
-		debug("Device id %d is not an eMMC device\n", dev_id);
-		return NULL;
-	}
-	if (mmc->version < MMC_VERSION_4_41) {
-		debug("Device id %d: RPMB not supported before version 4.41\n",
-		      dev_id);
-		return NULL;
-	}
+	/*
+	 * Check if priv->rpmb_mmc was already set from DT node,
+	 * otherwise use dev_id provided by OP-TEE OS
+	 * and find mmc device by its dev_id
+	 */
+	if (!priv->rpmb_mmc)
+		priv->rpmb_mmc = find_mmc_device(dev_id);
 
-	priv->rpmb_original_part = mmc_get_blk_desc(mmc)->hwpart;
+	rc = check_mmc(priv->rpmb_mmc);
+	if (rc)
+		return NULL;
 
-	rc = blk_select_hwpart_devnum(IF_TYPE_MMC, dev_id, MMC_PART_RPMB);
+	priv->rpmb_original_part = mmc_get_blk_desc(priv->rpmb_mmc)->hwpart;
+
+	rc = mmc_switch_part(priv->rpmb_mmc, MMC_PART_RPMB);
 	if (rc) {
 		debug("Device id %d: cannot select RPMB partition: %d\n",
 		      dev_id, rc);
 		return NULL;
 	}
 
-	priv->rpmb_mmc = mmc;
-	priv->rpmb_dev_id = dev_id;
-	return mmc;
+	priv->rpmb_inited = true;
+	return priv->rpmb_mmc;
 }
 
-static u32 rpmb_get_dev_info(u16 dev_id, struct rpmb_dev_info *info)
+static u32 rpmb_get_dev_info(struct optee_private *priv, u16 dev_id,
+			     struct rpmb_dev_info *info)
 {
-	struct mmc *mmc = find_mmc_device(dev_id);
+	if (!priv->rpmb_mmc)
+		priv->rpmb_mmc = find_mmc_device(dev_id);
+
 	int i;
 
-	if (!mmc)
+	if (!priv->rpmb_mmc)
 		return TEE_ERROR_ITEM_NOT_FOUND;
 
-	if (!mmc->ext_csd)
+	if (!(priv->rpmb_mmc->ext_csd))
 		return TEE_ERROR_GENERIC;
 
-	for (i = 0; i < ARRAY_SIZE(mmc->cid); i++)
-		((u32 *) info->cid)[i] = cpu_to_be32(mmc->cid[i]);
+	for (i = 0; i < ARRAY_SIZE(priv->rpmb_mmc->cid); i++)
+		((u32 *) info->cid)[i] = cpu_to_be32(priv->rpmb_mmc->cid[i]);
 
-	info->rel_wr_sec_c = mmc->ext_csd[222];
-	info->rpmb_size_mult = mmc->ext_csd[168];
+	info->rel_wr_sec_c = priv->rpmb_mmc->ext_csd[222];
+	info->rpmb_size_mult = priv->rpmb_mmc->ext_csd[168];
 	info->ret_code = RPMB_CMD_GET_DEV_INFO_RET_OK;
 
 	return TEE_SUCCESS;
@@ -143,7 +158,7 @@ static u32 rpmb_process_request(struct optee_private *priv, void *req,
 			debug("Invalid req/rsp size\n");
 			return TEE_ERROR_BAD_PARAMETERS;
 		}
-		return rpmb_get_dev_info(sreq->dev_id, rsp);
+		return rpmb_get_dev_info(priv, sreq->dev_id, rsp);
 
 	default:
 		debug("Unsupported RPMB command: %d\n", sreq->cmd);

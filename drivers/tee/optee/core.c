@@ -11,6 +11,7 @@
 #include <linux/arm-smccc.h>
 #include <linux/err.h>
 #include <linux/io.h>
+#include <mmc.h>
 
 #include "optee_smc.h"
 #include "optee_msg.h"
@@ -605,13 +606,45 @@ static optee_invoke_fn *get_invoke_func(struct udevice *dev)
 	return ERR_PTR(-EINVAL);
 }
 
+static struct mmc *get_rpmb_dev(struct udevice *dev)
+{
+	struct udevice *mmc_dev;
+	const fdt32_t *phandle_p;
+	u32 phandle;
+	int ret = 0;
+
+	debug("optee: looking for rpmb device in DT.\n");
+
+	phandle_p  = ofnode_get_property(dev_ofnode(dev),
+					 "rpmb-dev", NULL);
+	if (!phandle_p) {
+		debug("optee: missing \"rpmb-dev\" property\n");
+		return NULL;
+	}
+
+	phandle = fdt32_to_cpu(*phandle_p);
+
+	ret = uclass_get_device_by_phandle_id(UCLASS_MMC, phandle, &mmc_dev);
+	if (ret) {
+		printf("optee: invalid phandle value in \"rpmb-dev\".\n");
+		return NULL;
+	}
+
+	debug("optee: using phandle %d from \"rpmd-dev\" property.\n",
+	      phandle);
+	return mmc_get_mmc_dev(mmc_dev);
+}
+
 static int optee_ofdata_to_platdata(struct udevice *dev)
 {
 	struct optee_pdata *pdata = dev_get_platdata(dev);
+	struct optee_private *priv = dev_get_priv(dev);
 
 	pdata->invoke_fn = get_invoke_func(dev);
 	if (IS_ERR(pdata->invoke_fn))
 		return PTR_ERR(pdata->invoke_fn);
+
+	priv->rpmb_mmc = get_rpmb_dev(dev);
 
 	return 0;
 }
