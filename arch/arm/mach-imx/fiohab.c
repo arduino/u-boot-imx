@@ -3,6 +3,10 @@
  * Copyright (C) 2019 Foundries.IO
  */
 
+#if (defined(CONFIG_MX6Q) || defined(CONFIG_MX6DL) || defined(CONFIG_MX6QDL))
+#define CONFIG_CAAM_IGNORE_KNOWN_HAB_EVENTS 1
+#endif
+
 #include <common.h>
 #include <config.h>
 #include <fuse.h>
@@ -97,6 +101,32 @@ static int fiovb_provisioned(void)
 #error "SoC not supported"
 #endif
 
+#ifdef CONFIG_CAAM_IGNORE_KNOWN_HAB_EVENTS
+#define RNG_FAIL_EVENT_SIZE 36
+/* Known HAB event from imx6d where RNG selftest failed due to ROM issue */
+static uint8_t habv4_known_rng_fail_events[][RNG_FAIL_EVENT_SIZE] = {
+	{ 0xdb, 0x00, 0x24, 0x42,  0x69, 0x30, 0xe1, 0x1d,
+	  0x00, 0x04, 0x00, 0x02,  0x40, 0x00, 0x36, 0x06,
+	  0x55, 0x55, 0x00, 0x03,  0x00, 0x00, 0x00, 0x00,
+	  0x00, 0x00, 0x00, 0x00,  0x00, 0x00, 0x00, 0x00,
+	  0x00, 0x00, 0x00, 0x01 },
+};
+
+static bool is_known_rng_fail_event(const uint8_t *data, size_t len)
+{
+	int i;
+
+	for (i = 0; i < ARRAY_SIZE(habv4_known_rng_fail_events); i++) {
+		if (memcmp(data, habv4_known_rng_fail_events[i],
+			   min_t(size_t, len, RNG_FAIL_EVENT_SIZE)) == 0) {
+			return true;
+		}
+	}
+
+	return false;
+}
+#endif
+
 static hab_rvt_report_status_t *hab_check;
 
 static int hab_status(void)
@@ -106,8 +136,29 @@ static int hab_status(void)
 	enum hab_state state = 0;
 
 	if (hab_check(&config, &state) != HAB_SUCCESS) {
+/* check to see if the only events are known failures */
+#ifdef CONFIG_CAAM_IGNORE_KNOWN_HAB_EVENTS
+		hab_rvt_report_event_t *hab_event_f;
+		hab_event_f =  (hab_rvt_report_event_t *)HAB_RVT_REPORT_EVENT;
+		uint32_t index = 0; /* Loop index */
+		uint8_t event_data[128]; /* Event data buffer */
+		size_t bytes = sizeof(event_data); /* Event size in bytes */
+
+		/* Check for known failure to ingore */
+		while (hab_event_f(HAB_STS_ANY, index++, event_data, &bytes) ==
+		       HAB_SUCCESS) {
+			if (!is_known_rng_fail_event(event_data, bytes)) {
+				printf("HAB events active error\n");
+				return 1;
+			}
+		}
+
+		printf("Ignoring known HAB failures, no other events found.\n");
+		return 0;
+#else
 		printf("HAB events active error\n");
 		return 1;
+#endif
 	}
 
 	return 0;
