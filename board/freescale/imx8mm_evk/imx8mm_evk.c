@@ -113,7 +113,7 @@ int board_phy_config(struct phy_device *phydev)
 }
 #endif
 
-#ifdef CONFIG_USB_TCPC
+#if defined(CONFIG_USB_TCPC) && !defined(CONFIG_SPL_BUILD)
 struct tcpc_port port1;
 struct tcpc_port port2;
 
@@ -294,7 +294,7 @@ int board_ehci_usb_phy_mode(struct udevice *dev)
 
 int board_init(void)
 {
-#ifdef CONFIG_USB_TCPC
+#if defined(CONFIG_USB_TCPC) && !defined(CONFIG_SPL_BUILD)
 	setup_typec();
 #endif
 
