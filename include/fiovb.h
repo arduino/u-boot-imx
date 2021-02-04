@@ -18,6 +18,8 @@
  *      				     expected size.
  * FIOVB_IO_RESULT_ERROR_INSUFFICIENT_SPACE: buffer too small for the requested
  *					     operation.
+ * FIOVB_IO_RESULT_ERROR_ACCESS_CONFLICT: persistent object already exists and
+ *					  no permission to overwrite.
  */
 typedef enum {
 	FIOVB_IO_RESULT_OK,
@@ -26,6 +28,7 @@ typedef enum {
 	FIOVB_IO_RESULT_ERROR_NO_SUCH_VALUE,
 	FIOVB_IO_RESULT_ERROR_INVALID_VALUE_SIZE,
 	FIOVB_IO_RESULT_ERROR_INSUFFICIENT_SPACE,
+	FIOVB_IO_RESULT_ERROR_ACCESS_CONFLICT,
 } fiovb_io_result;
 
 struct fiovb_ops;
@@ -44,6 +47,9 @@ struct fiovb_ops {
                                             const char* name,
                                             size_t value_size,
                                             const uint8_t* value);
+
+  fiovb_io_result (*delete_persistent_value)(struct fiovb_ops* ops,
+                                             const char* name);
 };
 
 struct fiovb_ops_data {

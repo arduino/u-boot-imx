@@ -60,6 +60,8 @@ static fiovb_io_result invoke_func(struct fiovb_ops_data *ops_data, u32 func,
 		return FIOVB_IO_RESULT_ERROR_INSUFFICIENT_SPACE;
 	case TEE_ERROR_ITEM_NOT_FOUND:
 		return FIOVB_IO_RESULT_ERROR_NO_SUCH_VALUE;
+	case TEE_ERROR_ACCESS_CONFLICT:
+		return FIOVB_IO_RESULT_ERROR_ACCESS_CONFLICT;
 	case TEE_ERROR_TARGET_DEAD:
 		/*
 		 * The TA has paniced, close the session to reload the TA
@@ -191,6 +193,40 @@ free_name:
 	return rc;
 }
 
+static fiovb_io_result delete_persistent_value(struct fiovb_ops *ops,
+					       const char *name)
+{
+	fiovb_io_result rc;
+	struct tee_shm *shm_name;
+	struct tee_param param[1];
+	struct udevice *tee;
+	size_t name_size = strlen(name) + 1;
+
+	if (get_open_session(ops->user_data))
+		return FIOVB_IO_RESULT_ERROR_IO;
+
+	tee = ((struct fiovb_ops_data *)ops->user_data)->tee;
+
+	rc = tee_shm_alloc(tee, name_size,
+			   TEE_SHM_ALLOC, &shm_name);
+	if (rc)
+		return FIOVB_IO_RESULT_ERROR_OOM;
+
+	memcpy(shm_name->addr, name, name_size);
+
+	memset(param, 0, sizeof(param));
+	param[0].attr = TEE_PARAM_ATTR_TYPE_MEMREF_INPUT;
+	param[0].u.memref.shm = shm_name;
+	param[0].u.memref.size = name_size;
+
+	rc = invoke_func(ops->user_data, TA_FIOVB_CMD_DELETE_PERSIST_VALUE,
+			 1, param);
+
+	tee_shm_free(shm_name);
+
+	return rc;
+}
+
 struct fiovb_ops *fiovb_ops_alloc(int boot_device)
 {
 	struct fiovb_ops_data *ops_data;
@@ -201,6 +237,7 @@ struct fiovb_ops *fiovb_ops_alloc(int boot_device)
 
 	ops_data->ops.user_data = ops_data;
 
+	ops_data->ops.delete_persistent_value = delete_persistent_value;
 	ops_data->ops.write_persistent_value = write_persistent_value;
 	ops_data->ops.read_persistent_value = read_persistent_value;
 	ops_data->mmc_dev = boot_device;

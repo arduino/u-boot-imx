@@ -26,4 +26,11 @@
  */
 #define TA_FIOVB_CMD_WRITE_PERSIST_VALUE	1
 
+/*
+ * Delete a persistent object corresponding to the given name.
+ *
+ * in	params[0].memref:	persistent value name
+ */
+#define TA_FIOVB_CMD_DELETE_PERSIST_VALUE	2
+
 #endif /*__TA_FIOVB_H*/
