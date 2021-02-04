@@ -113,10 +113,40 @@ int do_fiovb_write_pvalue(cmd_tbl_t *cmdtp, int flag, int argc,
 	return CMD_RET_FAILURE;
 }
 
+int do_fiovb_delete_pvalue(cmd_tbl_t *cmdtp, int flag, int argc,
+			   char * const argv[])
+{
+	const char *name;
+	char fiovb_name[20] = { 0 }; /* fiovb.name */
+
+	if (!fiovb_ops) {
+		printf("Foundries.IO Verified Boot is not initialized, run 'fiovb init' first\n");
+		return CMD_RET_FAILURE;
+	}
+
+	if (argc != 2)
+		return CMD_RET_USAGE;
+
+	name = argv[1];
+
+	if (fiovb_ops->delete_persistent_value(fiovb_ops, name) ==
+	    FIOVB_IO_RESULT_OK) {
+		printf("Deleted persistent value %s\n", name);
+		snprintf(fiovb_name, sizeof(fiovb_name), "fiovb.%s", name);
+		env_set(fiovb_name, NULL);
+		return CMD_RET_SUCCESS;
+	}
+
+	printf("Failed to delete persistent value\n");
+
+	return CMD_RET_FAILURE;
+}
+
 static cmd_tbl_t cmd_fiovb[] = {
 	U_BOOT_CMD_MKENT(init, 2, 0, do_fiovb_init, "", ""),
 	U_BOOT_CMD_MKENT(read_pvalue, 3, 0, do_fiovb_read_pvalue, "", ""),
 	U_BOOT_CMD_MKENT(write_pvalue, 3, 0, do_fiovb_write_pvalue, "", ""),
+	U_BOOT_CMD_MKENT(delete_pvalue, 2, 0, do_fiovb_delete_pvalue, "", ""),
 };
 
 static int do_fiovb(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
@@ -144,4 +174,5 @@ U_BOOT_CMD(
 	"init <dev> - initialize fiovb for <dev>\n"
 	"read_pvalue <name> <bytes> - read a persistent value <name>\n"
 	"write_pvalue <name> <value> - write a persistent value <name>\n"
+	"delete_pvalue <name> - delete a persistent value <name>\n"
 	);
