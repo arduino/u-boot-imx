@@ -8,7 +8,8 @@
 #define TA_FIOVB_UUID {0x22250a54, 0x0bf1, 0x48fe, \
 		      { 0x80, 0x02, 0x7b, 0x20, 0xf1, 0xc9, 0xc9, 0xb1 } }
 
-#define PERSIST_VALUE_LIST {"bootcount", "rollback", "m4hash", "m4size"}
+#define PERSIST_VALUE_LIST {"bootcount", "upgrade_available", "rollback", \
+			    "m4hash", "m4size"}
 
 /*
  * Reads a persistent value corresponding to the given name.
