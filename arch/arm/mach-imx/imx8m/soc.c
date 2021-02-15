@@ -633,6 +633,13 @@ enum boot_device get_boot_device(void)
 }
 #endif
 
+int boot_mode_getprisec(void)
+{
+	struct src *psrc = (struct src *)SRC_BASE_ADDR;
+
+	return !!(readl(&psrc->gpr10) & SRC_GPR10_PERSIST_SECONDARY_BOOT);
+}
+
 bool is_usb_boot(void)
 {
 	return get_boot_device() == USB_BOOT;
