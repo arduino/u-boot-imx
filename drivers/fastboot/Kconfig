@@ -93,6 +93,12 @@ config FSL_FASTBOOT
 	help
 	  This enables FSL implementation for Android fastboot.
 
+config FSL_FASTBOOT_BOOTLOADER_SECONDARY
+	bool "Enable FSL fastboot flash support for primary/secondary sets of bootloader images"
+	depends on FASTBOOT_FLASH
+	help
+	  This enables FSL implementation for Android fastboot.
+
 config FSL_FASTBOOT_BOOTLOADER2
 	bool "Enable FSL fastboot flash support for separate SPL/u-boot"
 	depends on FASTBOOT_FLASH

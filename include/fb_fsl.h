@@ -78,8 +78,15 @@
 #define FASTBOOT_PARTITION_CACHE "cache"
 #define FASTBOOT_PARTITION_DEVICE "device"
 #define FASTBOOT_PARTITION_BOOTLOADER "bootloader"
+#ifdef CONFIG_FSL_FASTBOOT_BOOTLOADER_SECONDARY
+#define FASTBOOT_PARTITION_BOOTLOADER_SECONDARY "bootloader_s"
+#define FASTBOOT_PARTITION_SIT "sit" /* secondary image table */
+#endif
 #ifdef CONFIG_FSL_FASTBOOT_BOOTLOADER2
 #define FASTBOOT_PARTITION_BOOTLOADER2 "bootloader2"
+#ifdef CONFIG_FSL_FASTBOOT_BOOTLOADER_SECONDARY
+#define FASTBOOT_PARTITION_BOOTLOADER2_SECONDARY "bootloader2_s"
+#endif
 #endif
 #define FASTBOOT_PARTITION_DATA "userdata"
 #define FASTBOOT_PARTITION_GPT "gpt"
@@ -133,7 +140,16 @@
 
 #define ANDROID_MBR_OFFSET	    0
 #define ANDROID_MBR_SIZE	    0x200
-#define ANDROID_BOOTLOADER_SIZE	    0x400000
+#ifdef CONFIG_FSL_FASTBOOT_BOOTLOADER_SECONDARY
+/*
+ * If we support secondary boot and use boot partition
+ * the manixum size of bootloader is half of boot partition size
+ * excluding MMC bootloader offset
+*/
+#define ANDROID_BOOTLOADER_SIZE    0x200000
+#else
+#define ANDROID_BOOTLOADER_SIZE    0x400000
+#endif
 
 #define ANDROID_GPT_OFFSET         0
 #define ANDROID_GPT_SIZE           0x100000

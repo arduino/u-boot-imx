@@ -46,13 +46,28 @@ enum {
 #endif
 	PTN_ALL_INDEX,
 	PTN_BOOTLOADER_INDEX,
+#ifdef CONFIG_FSL_FASTBOOT_BOOTLOADER_SECONDARY
+	PTN_BOOTLOADER_SECONDARY_INDEX,
+	PTN_SIT_INDEX,
+#endif
 #ifdef CONFIG_FSL_FASTBOOT_BOOTLOADER2
 	PTN_BOOTLOADER2_INDEX,
+#ifdef CONFIG_FSL_FASTBOOT_BOOTLOADER_SECONDARY
+	PTN_BOOTLOADER2_SECONDARY_INDEX,
+#endif
 #endif
 };
 
 struct fastboot_ptentry g_ptable[MAX_PTN];
 unsigned int g_pcount;
+
+#ifdef CONFIG_FSL_FASTBOOT_BOOTLOADER_SECONDARY
+static ulong secondary_image_table_mmc_offset(void)
+{
+	if (is_imx8mq() || is_imx8mm() || ((is_imx8qm() || is_imx8qxp()) && is_soc_rev(CHIP_REV_A)))
+		return 0x8200;
+}
+#endif
 
 static ulong bootloader_mmc_offset(void)
 {
@@ -259,6 +274,42 @@ static int _fastboot_parts_load_from_ptable(void)
 	strcpy(ptable[PTN_BOOTLOADER2_INDEX].fstype, "raw");
 	last_bootloader_partition = PTN_BOOTLOADER2_INDEX;
 #endif
+
+#ifdef CONFIG_FSL_FASTBOOT_BOOTLOADER_SECONDARY
+	/*
+	 * Bootloader images for Secondary rendundant boot
+	 */
+	strcpy(ptable[PTN_BOOTLOADER_SECONDARY_INDEX].name, FASTBOOT_PARTITION_BOOTLOADER_SECONDARY);
+	ptable[PTN_BOOTLOADER_SECONDARY_INDEX].start = CONFIG_SECONDARY_BOOT_SECTOR_OFFSET +
+		ptable[PTN_BOOTLOADER_INDEX].start;
+	ptable[PTN_BOOTLOADER_SECONDARY_INDEX].length = ptable[PTN_BOOTLOADER_INDEX].length;
+	ptable[PTN_BOOTLOADER_SECONDARY_INDEX].partition_id = boot_partition;
+	ptable[PTN_BOOTLOADER_SECONDARY_INDEX].flags = FASTBOOT_PTENTRY_FLAGS_UNERASEABLE;
+	strcpy(ptable[PTN_BOOTLOADER_SECONDARY_INDEX].fstype, "raw");
+
+	/* Secondary Image Table */
+	strcpy(ptable[PTN_SIT_INDEX].name, FASTBOOT_PARTITION_SIT);
+	ptable[PTN_SIT_INDEX].start =
+				secondary_image_table_mmc_offset() / dev_desc->blksz;
+	/* Just one sector, however the table itself is only 20 bytes */
+	ptable[PTN_SIT_INDEX].length = 1;
+	ptable[PTN_SIT_INDEX].partition_id = boot_partition;
+	ptable[PTN_SIT_INDEX].flags = FASTBOOT_PTENTRY_FLAGS_UNERASEABLE;
+	strcpy(ptable[PTN_SIT_INDEX].fstype, "raw");
+	last_bootloader_partition = PTN_SIT_INDEX;
+
+#ifdef CONFIG_FSL_FASTBOOT_BOOTLOADER2
+	/* Bootloader2 (u-boot binary when SPL is separate) */
+	strcpy(ptable[PTN_BOOTLOADER2_SECONDARY_INDEX].name, FASTBOOT_PARTITION_BOOTLOADER2_SECONDARY);
+	ptable[PTN_BOOTLOADER2_SECONDARY_INDEX].start = CONFIG_SECONDARY_BOOT_SECTOR_OFFSET + ptable[PTN_BOOTLOADER2_INDEX].start;
+	ptable[PTN_BOOTLOADER2_SECONDARY_INDEX].length = ptable[PTN_BOOTLOADER2_INDEX].length;
+	ptable[PTN_BOOTLOADER2_SECONDARY_INDEX].partition_id = boot_partition;
+	ptable[PTN_BOOTLOADER2_SECONDARY_INDEX].flags = FASTBOOT_PTENTRY_FLAGS_UNERASEABLE;
+	strcpy(ptable[PTN_BOOTLOADER2_SECONDARY_INDEX].fstype, "raw");
+	last_bootloader_partition = PTN_BOOTLOADER2_SECONDARY_INDEX;
+
+#endif
+#endif /* CONFIG_FSL_FASTBOOT_BOOTLOADER_SECONDARY */
 
 	int tbl_idx;
 	int part_idx = 1;
