@@ -27,6 +27,14 @@ config IMX8MP
 config SYS_SOC
 	default "imx8m"
 
+config SECONDARY_BOOT_RUNTIME_DETECTION
+	bool "SD/MMC sector offset runtime detection"
+	default n
+	depends on (IMX8MQ || IMX8MM) && SYS_MMCSD_RAW_MODE_U_BOOT_USE_SECTOR && SPL_MMC_SUPPORT
+	help
+	  Detect correct sector offset in SPL for the next boot image
+	  in runtime.
+
 config SECONDARY_BOOT_SECTOR_OFFSET
 	hex "SD/MMC sector offset used for ROM secondary boot"
 	default 0x0
