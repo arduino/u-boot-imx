@@ -323,3 +323,33 @@ int do_reset(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 
 	return 0;
 }
+
+#ifdef CONFIG_SECONDARY_BOOT_RUNTIME_DETECTION
+unsigned long spl_mmc_get_uboot_raw_sector(struct mmc *mmc,
+					   unsigned long raw_sect)
+{
+	int boot_secondary = boot_mode_getprisec();
+	unsigned long offset = CONFIG_SYS_MMCSD_RAW_MODE_U_BOOT_SECTOR;
+
+	if (boot_secondary)
+		offset += CONFIG_SECONDARY_BOOT_SECTOR_OFFSET;
+
+	debug("%s: Booting from 0x%lx offset as GPR10 "
+	      "PERSIST_SECONDARY_BOOT bit = %d\n",
+	      __func__, offset, boot_secondary);
+
+	if (!boot_secondary) {
+		debug("%s: Set: GPR10 PERSIST_SECONDARY_BOOT = %d\n",
+		      __func__, boot_mode_getprisec());
+		/*
+		 * Set GPR10 PERSIST_SECONDARY_BOOT bit,
+		 * so in case of hang or other issues
+		 * BootROM will load recovery boot images
+		 * after _warm_ reset.
+		 */
+		boot_mode_enable_secondary(true);
+	}
+
+	return offset;
+}
+#endif
