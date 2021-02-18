@@ -640,6 +640,17 @@ int boot_mode_getprisec(void)
 	return !!(readl(&psrc->gpr10) & SRC_GPR10_PERSIST_SECONDARY_BOOT);
 }
 
+void boot_mode_enable_secondary(bool enable)
+{
+	u32 persist_sec = SRC_GPR10_PERSIST_SECONDARY_BOOT;
+	struct src *psrc = (struct src *)SRC_BASE_ADDR;
+
+	if (enable)
+		setbits_le32(&psrc->gpr10, persist_sec);
+	else
+		clrbits_le32(&psrc->gpr10, persist_sec);
+}
+
 bool is_usb_boot(void)
 {
 	return get_boot_device() == USB_BOOT;
