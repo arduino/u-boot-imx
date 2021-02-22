@@ -137,7 +137,7 @@ static int imx8m_xhci_core_init(struct imx8m_xhci *imx8m_xhci)
 	return ret;
 }
 
-#ifdef CONFIG_DM_USB
+#if CONFIG_IS_ENABLED(DM_USB)
 static int xhci_imx8m_probe(struct udevice *dev)
 {
 	struct xhci_hccr *hccr;
