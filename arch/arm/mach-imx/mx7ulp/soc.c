@@ -425,7 +425,6 @@ void arch_preboot_os(void)
 	scg_disable_pll_pfd(SCG_APLL_PFD3_CLK);
 }
 
-#ifdef CONFIG_ENV_IS_IN_MMC
 __weak int board_mmc_get_env_dev(int devno)
 {
 	return devno;
@@ -445,7 +444,6 @@ int mmc_get_env_dev(void)
 
 	return board_mmc_get_env_dev(devno);
 }
-#endif
 
 enum boot_device get_boot_device(void)
 {
