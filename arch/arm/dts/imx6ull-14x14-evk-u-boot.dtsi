@@ -23,6 +23,11 @@
 	u-boot,dm-spl;
 };
 
+&aips3 {
+	u-boot,dm-pre-reloc;
+	u-boot,dm-spl;
+};
+
 &uart1 {
 	u-boot,dm-pre-reloc;
 	u-boot,dm-spl;
@@ -50,6 +55,11 @@
 };
 
 &reg_sd1_vmmc {
+        u-boot,dm-pre-reloc;
+        u-boot,dm-spl;
+};
+
+&rngb {
         u-boot,dm-pre-reloc;
         u-boot,dm-spl;
 };
