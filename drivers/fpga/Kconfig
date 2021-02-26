@@ -87,6 +87,7 @@ config FPGA_ZYNQPL
 
 config FPGA_IMX_M4
 	bool "Enable FPGA IMX M4 - boot/upgrade"
+	select FPGA
 	help
 	  Enable FPGA driver for loading a bitstream to an IMX M4 coprocessor.
 	  This allows the firmware to either be boot or upgraded and boot.
