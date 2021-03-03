@@ -255,7 +255,7 @@ static int _fastboot_parts_load_from_ptable(void)
 				/ dev_desc->blksz;
 #else
 	ptable[PTN_BOOTLOADER_INDEX].length =
-				 ANDROID_BOOTLOADER_SIZE / dev_desc->blksz;
+				(ANDROID_BOOTLOADER_SIZE - bootloader_mmc_offset()) / dev_desc->blksz;
 #endif
 	ptable[PTN_BOOTLOADER_INDEX].partition_id = boot_partition;
 	ptable[PTN_BOOTLOADER_INDEX].flags = FASTBOOT_PTENTRY_FLAGS_UNERASEABLE;
