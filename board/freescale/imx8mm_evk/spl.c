@@ -340,8 +340,6 @@ unsigned long spl_mmc_get_uboot_raw_sector(struct mmc *mmc,
 	      __func__, offset, boot_secondary);
 
 	if (!boot_secondary) {
-		debug("%s: Set: GPR10 PERSIST_SECONDARY_BOOT = %d\n",
-		      __func__, boot_mode_getprisec());
 		/*
 		 * Set GPR10 PERSIST_SECONDARY_BOOT bit,
 		 * so in case of hang or other issues
@@ -349,6 +347,9 @@ unsigned long spl_mmc_get_uboot_raw_sector(struct mmc *mmc,
 		 * after _warm_ reset.
 		 */
 		boot_mode_enable_secondary(true);
+
+		debug("%s: Set: GPR10 PERSIST_SECONDARY_BOOT = %d\n",
+		      __func__, boot_mode_getprisec());
 	}
 
 	return offset;
