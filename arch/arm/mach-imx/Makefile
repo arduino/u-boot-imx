@@ -82,6 +82,7 @@ obj-$(CONFIG_CMD_HDMIDETECT) += cmd_hdmidet.o
 obj-$(CONFIG_CMD_DEKBLOB) += cmd_dek.o
 obj-$(CONFIG_CMD_NANDBCB) += cmd_nandbcb.o
 obj-$(CONFIG_IMX_VSERVICE) += imx_vservice.o
+obj-${CONFIG_CMD_SECONDARY_BOOT} += imx_secondary_boot.o
 endif
 
 PLUGIN = board/$(BOARDDIR)/plugin
