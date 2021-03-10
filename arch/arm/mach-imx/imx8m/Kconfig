@@ -30,7 +30,7 @@ config SYS_SOC
 config SECONDARY_BOOT_RUNTIME_DETECTION
 	bool "SD/MMC sector offset runtime detection"
 	default n
-	depends on (IMX8MQ || IMX8MM) && SYS_MMCSD_RAW_MODE_U_BOOT_USE_SECTOR && SPL_MMC_SUPPORT
+	depends on (IMX8MQ || IMX8MM) && SPL_MMC_SUPPORT
 	help
 	  Detect correct sector offset in SPL for the next boot image
 	  in runtime.
