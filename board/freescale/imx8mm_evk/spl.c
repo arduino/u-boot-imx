@@ -324,7 +324,8 @@ int do_reset(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	return 0;
 }
 
-#ifdef CONFIG_SECONDARY_BOOT_RUNTIME_DETECTION
+#if defined(CONFIG_SECONDARY_BOOT_RUNTIME_DETECTION) && \
+    defined(CONFIG_SYS_MMCSD_RAW_MODE_U_BOOT_USE_SECTOR)
 unsigned long spl_mmc_get_uboot_raw_sector(struct mmc *mmc,
 					   unsigned long raw_sect)
 {
