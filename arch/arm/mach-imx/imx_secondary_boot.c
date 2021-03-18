@@ -59,3 +59,21 @@ U_BOOT_CMD(
 	"   0 - set primary image\n"
 	"   1 - set secondary image\n"
 );
+
+static int do_warm_reset(cmd_tbl_t *cmdtp, int flag,
+			 int argc, char * const argv[])
+{
+	unsigned long ret = 0;
+
+	ret = call_imx_sip(IMX_SIP_WARM_RESET, 0, 0, 0, 0);
+	if (ret)
+		return CMD_RET_FAILURE;
+
+	return CMD_RET_SUCCESS;
+}
+
+U_BOOT_CMD(
+	imx_warm_reset, CONFIG_SYS_MAXARGS, 1, do_warm_reset,
+	"Assert WDOG Software Reset Signal (internal reset) via TF-A",
+	"\n"
+);
