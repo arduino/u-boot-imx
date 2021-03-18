@@ -332,12 +332,14 @@ unsigned long spl_mmc_get_uboot_raw_sector(struct mmc *mmc,
 	int boot_secondary = boot_mode_getprisec();
 	unsigned long offset = CONFIG_SYS_MMCSD_RAW_MODE_U_BOOT_SECTOR;
 
-	if (boot_secondary)
+	if (boot_secondary) {
 		offset += CONFIG_SECONDARY_BOOT_SECTOR_OFFSET;
-
-	debug("%s: Booting from 0x%lx offset as GPR10 "
-	      "PERSIST_SECONDARY_BOOT bit = %d\n",
-	      __func__, offset, boot_secondary);
+		printf("SPL: Booting secondary boot path: using 0x%lx offset "
+		       "for next boot image\n", offset);
+	} else {
+		printf("SPL: Booting primary boot path: using 0x%lx offset "
+		       "for next boot image\n", offset);
+	}
 
 	return offset;
 }
