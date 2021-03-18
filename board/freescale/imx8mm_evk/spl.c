@@ -339,19 +339,6 @@ unsigned long spl_mmc_get_uboot_raw_sector(struct mmc *mmc,
 	      "PERSIST_SECONDARY_BOOT bit = %d\n",
 	      __func__, offset, boot_secondary);
 
-	if (!boot_secondary) {
-		/*
-		 * Set GPR10 PERSIST_SECONDARY_BOOT bit,
-		 * so in case of hang or other issues
-		 * BootROM will load recovery boot images
-		 * after _warm_ reset.
-		 */
-		boot_mode_enable_secondary(true);
-
-		debug("%s: Set: GPR10 PERSIST_SECONDARY_BOOT = %d\n",
-		      __func__, boot_mode_getprisec());
-	}
-
 	return offset;
 }
 #endif
