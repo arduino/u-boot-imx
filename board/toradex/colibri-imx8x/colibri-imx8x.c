@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0+
 /*
- * Copyright 2018-2019 Toradex
+ * Copyright 2018-2021 Toradex
  */
 #include <common.h>
 #include <cpu_func.h>
@@ -20,6 +20,7 @@
 #include <asm/arch/iomux.h>
 #include <asm/arch/sys_proto.h>
 
+#include <i2c.h>
 #include <power-domain.h>
 #include <usb.h>
 
@@ -125,8 +126,52 @@ int board_phy_config(struct phy_device *phydev)
 }
 #endif
 
+#define I2C_ONMODULE_BUS	0
+#define I2C_GPIO_EXPANDER	0x43
+#define FXL6408_REG_IODIR	0x3
+#define FXL6408_REG_OUTPUT	0x5
+#define FXL6408_REG_OPENDR	0x7
+/*
+ * On-module GPIO expander FXL6408 drives management signals for
+ * on-module USB Hub.
+ */
+static void init_gpio_expander(void)
+{
+#ifdef CONFIG_DM_I2C
+	struct udevice *dev;
+	int ret;
+	u8 temp;
+
+	ret = i2c_get_chip_for_busnum(I2C_ONMODULE_BUS, I2C_GPIO_EXPANDER,
+				      1, &dev);
+	if (ret) {
+		printf("%s: Cannot find dev %d on I2C bus %d\n", __func__,
+		       I2C_GPIO_EXPANDER, I2C_ONMODULE_BUS);
+		return;
+	}
+
+	/*
+	 * On-module USB3803 Hub has bypass mode. It connects
+	 * directly its upstream PHY with its downstream PHY#3 port which then
+	 * goes to the carrier board USBH port.
+	 * Turn on the Bypass# and deassert the Reset# signals,
+	 * i.e. BYPASS_N = 0, RESET_N = 1
+	 * Refer to
+	 * https://www.onsemi.com/pdf/datasheet/fxl6408-d.pdf, Page 9
+	 */
+	temp = 0x30; /* set GPIO 4 and 5 as output */
+	dm_i2c_write(dev, 3, &temp, 1);
+	temp = 0xcf; /* take GPIO 4 and 5 out of tristate */
+	dm_i2c_write(dev, 7, &temp, 1);
+	temp = 0x10; /* set GPIO 4=1 and GPIO5=0 */
+	dm_i2c_write(dev, 5, &temp, 1);
+#endif
+}
+
 int board_init(void)
 {
+	init_gpio_expander();
+
 	gpio_request(USB_CDET_GPIO, "usb_cdet");
 
 #ifdef CONFIG_SNVS_SEC_SC_AUTO
