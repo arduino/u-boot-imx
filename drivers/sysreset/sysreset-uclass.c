@@ -113,9 +113,18 @@ void reset_cpu(ulong addr)
 
 int do_reset(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
+	enum sysreset_t reset_type = SYSRESET_COLD;
+
+	if (argc > 2)
+		return CMD_RET_USAGE;
+
+	if (argc == 2 && argv[1][0] == '-' && argv[1][1] == 'w') {
+		reset_type = SYSRESET_WARM;
+	}
+
 	printf("resetting ...\n");
 
-	sysreset_walk_halt(SYSRESET_COLD);
+	sysreset_walk_halt(reset_type);
 
 	return 0;
 }
