@@ -140,6 +140,13 @@
 			>;
 		};
 
+		pinctrl_i2c0: i2c0grp {
+			fsl,pins = <
+			SC_P_MIPI_CSI0_GPIO0_00_ADMA_I2C0_SCL	0x0C000020
+			SC_P_MIPI_CSI0_GPIO0_01_ADMA_I2C0_SDA	0x0C000020
+			>;
+		};
+
 		/*INT*/
 		pinctrl_usb3503a: usb3503a-grp {
 			fsl,pins = <
@@ -313,6 +320,15 @@
 			reg = <2>;
 		};
 	};
+};
+
+&i2c0 {
+	#address-cells = <1>;
+	#size-cells = <0>;
+	clock-frequency = <100000>;
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_i2c0>;
+	status = "okay";
 };
 
 &i2c1 {
