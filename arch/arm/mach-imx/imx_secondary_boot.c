@@ -4,10 +4,12 @@
  */
 
 #include <common.h>
+#include <asm/arch/sys_proto.h>
 #include <asm/io.h>
 #include <asm/mach-imx/sys_proto.h>
 #include <command.h>
 #include <elf.h>
+#include <env.h>
 #include <imx_sip.h>
 #include <linux/arm-smccc.h>
 #include <linux/compiler.h>
@@ -58,6 +60,29 @@ U_BOOT_CMD(
 	"   no param  - get current bit value\n"
 	"   0 - set primary image\n"
 	"   1 - set secondary image\n"
+);
+
+static int do_imx_is_closed(cmd_tbl_t *cmdtp, int flag,
+			    int argc, char * const argv[])
+{
+	int ret;
+
+	if (boot_mode_is_closed()) {
+		printf("Board is in closed state\n");
+
+		ret = env_set("board_is_closed", "1");
+		if (ret)
+			return CMD_RET_FAILURE;
+	} else {
+		printf("Board is in open state\n");
+	}
+
+	return CMD_RET_SUCCESS;
+}
+
+U_BOOT_CMD(
+	imx_is_closed, CONFIG_SYS_MAXARGS, 1, do_imx_is_closed,
+	"Check if the board is closed", ""
 );
 
 static int do_warm_reset(cmd_tbl_t *cmdtp, int flag,
