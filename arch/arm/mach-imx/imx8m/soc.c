@@ -640,6 +640,13 @@ int boot_mode_getprisec(void)
 	return !!(readl(&psrc->gpr10) & SRC_GPR10_PERSIST_SECONDARY_BOOT);
 }
 
+int boot_mode_is_closed(void)
+{
+	struct src *psrc = (struct src *)SRC_BASE_ADDR;
+
+	return !!(readl(&psrc->sbmr2) & SRC_SBMR2_SEC_CONFIG);
+}
+
 void boot_mode_enable_secondary(bool enable)
 {
 	u32 persist_sec = SRC_GPR10_PERSIST_SECONDARY_BOOT;
