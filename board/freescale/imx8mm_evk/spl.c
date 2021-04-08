@@ -16,11 +16,8 @@
 #include <asm/arch/ddr.h>
 
 #include <power/pmic.h>
-#ifdef CONFIG_POWER_PCA9450
 #include <power/pca9450.h>
-#else
 #include <power/bd71837.h>
-#endif
 #include <asm/mach-imx/gpio.h>
 #include <asm/mach-imx/mxc_i2c.h>
 #include <fsl_esdhc_imx.h>
@@ -185,11 +182,22 @@ int board_mmc_getcd(struct mmc *mmc)
 
 #ifdef CONFIG_POWER
 #define I2C_PMIC	0
-#ifdef CONFIG_POWER_PCA9450
+
 int power_init_board(void)
 {
 	struct pmic *p;
 	int ret;
+
+#ifdef CONFIG_POWER_PCA9450
+#ifdef CONFIG_POWER_BD71837
+	uint8_t is_bd71837 = 0;
+	ret = i2c_set_bus_num(I2C_PMIC);
+	if (!ret)
+		ret = i2c_read(0x4b, BD71837_REV, 1, &is_bd71837, 1);
+	/* BD71837_REV, High Nibble is major version, fix 1010 */
+	is_bd71837 = !ret && ((is_bd71837 & 0xf0) == 0xa0);
+	if (!is_bd71837) {
+#endif
 
 	ret = power_pca9450b_init(I2C_PMIC);
 	if (ret)
@@ -219,13 +227,13 @@ int power_init_board(void)
 	pmic_reg_write(p, PCA9450_RESET_CTRL, 0xA1);
 
 	return 0;
-}
-#else
-int power_init_board(void)
-{
-	struct pmic *p;
-	int ret;
 
+#ifdef CONFIG_POWER_BD71837
+	}
+#endif
+#endif
+
+#ifdef CONFIG_POWER_BD71837
 	ret = power_bd71837_init(I2C_PMIC);
 	if (ret)
 		printf("power init failed");
@@ -253,10 +261,9 @@ int power_init_board(void)
 
 	/* lock the PMIC regs */
 	pmic_reg_write(p, BD71837_REGLOCK, 0x11);
-
+#endif
 	return 0;
 }
-#endif
 #endif
 
 void spl_board_init(void)
