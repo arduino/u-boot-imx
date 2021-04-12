@@ -298,6 +298,30 @@ int board_ehci_usb_phy_mode(struct udevice *dev)
 #define DISPMIX				9
 #define MIPI				10
 
+#define I2C_PMIC	0
+
+static void set_fdt_file(void)
+{
+	struct udevice *bus;
+	struct udevice *i2c_dev = NULL;
+	int ret;
+	uint8_t is_bd71837 = 0;
+
+	ret = uclass_get_device_by_seq(UCLASS_I2C, I2C_PMIC, &bus);
+	if (!ret)
+		ret = dm_i2c_probe(bus, 0x4b, 0, &i2c_dev);
+	if (!ret)
+		ret = dm_i2c_read(i2c_dev, 0x0, &is_bd71837, 1);
+
+	/* BD71837_REV, High Nibble is major version, fix 1010 */
+	is_bd71837 = !ret && ((is_bd71837 & 0xf0) == 0xa0);
+
+	if (!is_bd71837)
+		env_set("fdt_file", "imx8mm-evkb.dtb");
+	else
+		env_set("fdt_file", "imx8mm-evk-qca-wifi.dtb");
+}
+
 int board_init(void)
 {
 	struct arm_smccc_res res;
@@ -322,6 +346,8 @@ int board_late_init(void)
 #ifdef CONFIG_ENV_IS_IN_MMC
 	board_late_mmc_env_init();
 #endif
+
+	set_fdt_file();
 
 #ifdef CONFIG_ENV_VARS_UBOOT_RUNTIME_CONFIG
 	env_set("board_name", "EVK");
