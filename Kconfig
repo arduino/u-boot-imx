@@ -366,7 +366,6 @@ config FIT_ENABLE_SHA256_SUPPORT
 
 config FIT_SIGNATURE
 	bool "Enable signature verification of FIT uImages"
-	depends on DM
 	select HASH
 	select RSA
 	help
@@ -458,7 +457,6 @@ config SPL_FIT_PRINT
 
 config SPL_FIT_SIGNATURE
 	bool "Enable signature verification of FIT firmware within SPL"
-	depends on SPL_DM
 	select SPL_FIT
 	select SPL_RSA
 
