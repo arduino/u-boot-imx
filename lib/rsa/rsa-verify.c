@@ -320,7 +320,9 @@ static int rsa_verify_key(struct image_sign_info *info,
 {
 	int ret;
 #if !defined(USE_HOSTCC)
+#if CONFIG_IS_ENABLED(DM)
 	struct udevice *mod_exp_dev;
+#endif
 #endif
 	struct checksum_algo *checksum = info->checksum;
 	struct padding_algo *padding = info->padding;
@@ -347,6 +349,7 @@ static int rsa_verify_key(struct image_sign_info *info,
 	hash_len = checksum->checksum_len;
 
 #if !defined(USE_HOSTCC)
+#if CONFIG_IS_ENABLED(DM)
 	ret = uclass_get_device(UCLASS_MOD_EXP, 0, &mod_exp_dev);
 	if (ret) {
 		printf("RSA: Can't find Modular Exp implementation\n");
@@ -354,6 +357,9 @@ static int rsa_verify_key(struct image_sign_info *info,
 	}
 
 	ret = rsa_mod_exp(mod_exp_dev, sig, sig_len, prop, buf);
+#else
+	ret = rsa_mod_exp_sw(sig, sig_len, prop, buf);
+#endif
 #else
 	ret = rsa_mod_exp_sw(sig, sig_len, prop, buf);
 #endif

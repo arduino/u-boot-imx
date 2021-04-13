@@ -76,7 +76,6 @@ config FIT_FULL_CHECK
 
 config FIT_SIGNATURE
 	bool "Enable signature verification of FIT uImages"
-	depends on DM
 	select HASH
 	select RSA
 	select RSA_VERIFY
@@ -186,7 +185,6 @@ config SPL_FIT_FULL_CHECK
 
 config SPL_FIT_SIGNATURE
 	bool "Enable signature verification of FIT firmware within SPL"
-	depends on SPL_DM
 	depends on SPL_LOAD_FIT || SPL_LOAD_FIT_FULL
 	select FIT_SIGNATURE
 	select SPL_FIT
