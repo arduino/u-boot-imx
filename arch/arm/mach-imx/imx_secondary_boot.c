@@ -11,6 +11,7 @@
 #include <elf.h>
 #include <env.h>
 #include <imx_sip.h>
+#include <linux/arm-smccc.h>
 #include <linux/compiler.h>
 #include <cpu_func.h>
 
@@ -18,15 +19,16 @@ static int do_imx_secondary_boot(cmd_tbl_t *cmdtp, int flag,
 				 int argc, char * const argv[])
 {
 	u32 secondary = 0;
+	struct arm_smccc_res res;
 	char secondary_val[2] = { 0 };
 	int ret;
 
 	/* If we just want to retrieve current value */
 	if (argc == 1) {
-		secondary = call_imx_sip(IMX_SIP_SRC,
-					 IMX_SIP_SRC_IS_SECONDARY_BOOT, 0,
-					 0, 0);
+		arm_smccc_smc(IMX_SIP_SRC, IMX_SIP_SRC_IS_SECONDARY_BOOT, 0, 0,
+			      0, 0, 0, 0, &res);
 
+		secondary = res.a0;
 		printf("Secondary boot bit = %d\n", secondary);
 		ret = snprintf(secondary_val, sizeof(secondary_val),
 			       "%d", secondary);
@@ -45,8 +47,8 @@ static int do_imx_secondary_boot(cmd_tbl_t *cmdtp, int flag,
 	if (!(secondary == 0 || secondary == 1))
 		return CMD_RET_USAGE;
 
-	call_imx_sip(IMX_SIP_SRC, IMX_SIP_SRC_SET_SECONDARY_BOOT,
-		     secondary, 0, 0);
+	arm_smccc_smc(IMX_SIP_SRC, IMX_SIP_SRC_SET_SECONDARY_BOOT, secondary, 0,
+		      0, 0, 0, 0, &res);
 
 	return CMD_RET_SUCCESS;
 }
