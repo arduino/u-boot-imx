@@ -678,6 +678,24 @@ __weak int board_mmc_get_env_dev(int devno)
 	return devno;
 }
 
+void boot_mode_enable_secondary(bool enable)
+{
+	u32 persist_sec = SRC_GPR10_PERSIST_SECONDARY_BOOT;
+	struct src *psrc = (struct src *)SRC_BASE_ADDR;
+
+	if (enable)
+		setbits_le32(&psrc->gpr10, persist_sec);
+	else
+		clrbits_le32(&psrc->gpr10, persist_sec);
+}
+
+int boot_mode_getprisec(void)
+{
+	struct src *psrc = (struct src *)SRC_BASE_ADDR;
+
+	return !!(readl(&psrc->gpr10) & SRC_GPR10_PERSIST_SECONDARY_BOOT);
+}
+
 static int mmc_get_boot_dev(void)
 {
 	struct src *src_regs = (struct src *)SRC_BASE_ADDR;
