@@ -64,8 +64,11 @@ unsigned int g_pcount;
 #ifdef CONFIG_FSL_FASTBOOT_BOOTLOADER_SECONDARY
 static ulong secondary_image_table_mmc_offset(void)
 {
-	if (is_imx8mq() || is_imx8mm() || ((is_imx8qm() || is_imx8qxp()) && is_soc_rev(CHIP_REV_A)))
+	if (is_imx8mq() || is_imx8mm() || ((is_imx8qm() || is_imx8qxp()) && is_soc_rev(CHIP_REV_A))) {
 		return 0x8200;
+	} else if (is_mx6ull() || is_mx6ul()) {
+		return 0x200;
+	}
 }
 #endif
 
