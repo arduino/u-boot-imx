@@ -123,6 +123,7 @@ static int hash_finish_crc16_ccitt(struct hash_algo *algo, void *ctx,
 }
 #endif
 
+#if !defined(CONFIG_SPL_BUILD) || defined(CONFIG_SPL_CRC32_SUPPORT)
 static int hash_init_crc32(struct hash_algo *algo, void **ctxp)
 {
 	uint32_t *ctx = malloc(sizeof(uint32_t));
@@ -148,6 +149,7 @@ static int hash_finish_crc32(struct hash_algo *algo, void *ctx, void *dest_buf,
 	free(ctx);
 	return 0;
 }
+#endif
 
 /*
  * These are the hash algorithms we support.  If we have hardware acceleration
@@ -209,6 +211,7 @@ static struct hash_algo hash_algo[] = {
 		.hash_finish	= hash_finish_crc16_ccitt,
 	},
 #endif
+#if !defined(CONFIG_SPL_BUILD) || defined(CONFIG_SPL_CRC32_SUPPORT)
 	{
 		.name		= "crc32",
 		.digest_size	= 4,
@@ -218,6 +221,7 @@ static struct hash_algo hash_algo[] = {
 		.hash_update	= hash_update_crc32,
 		.hash_finish	= hash_finish_crc32,
 	},
+#endif
 };
 
 /* Try to minimize code size for boards that don't want much hashing */
