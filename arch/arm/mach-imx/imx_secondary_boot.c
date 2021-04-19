@@ -19,16 +19,21 @@ static int do_imx_secondary_boot(struct cmd_tbl *cmdtp, int flag,
 				 int argc, char * const argv[])
 {
 	u32 secondary = 0;
-	struct arm_smccc_res res;
+	__maybe_unused struct arm_smccc_res res;
 	char secondary_val[2] = { 0 };
 	int ret;
 
 	/* If we just want to retrieve current value */
 	if (argc == 1) {
-		arm_smccc_smc(IMX_SIP_SRC, IMX_SIP_SRC_IS_SECONDARY_BOOT, 0, 0,
-			      0, 0, 0, 0, &res);
+		if (CONFIG_IS_ENABLED(ARCH_IMX8M)) {
+			arm_smccc_smc(IMX_SIP_SRC,
+				      IMX_SIP_SRC_IS_SECONDARY_BOOT, 0, 0,
+				      0, 0, 0, 0, &res);
+			secondary = res.a0;
+		} else {
+			secondary = boot_mode_getprisec();
+		}
 
-		secondary = res.a0;
 		printf("Secondary boot bit = %d\n", secondary);
 		ret = snprintf(secondary_val, sizeof(secondary_val),
 			       "%d", secondary);
@@ -47,8 +52,12 @@ static int do_imx_secondary_boot(struct cmd_tbl *cmdtp, int flag,
 	if (!(secondary == 0 || secondary == 1))
 		return CMD_RET_USAGE;
 
-	arm_smccc_smc(IMX_SIP_SRC, IMX_SIP_SRC_SET_SECONDARY_BOOT, secondary, 0,
-		      0, 0, 0, 0, &res);
+	if (CONFIG_IS_ENABLED(ARCH_IMX8M)) {
+		arm_smccc_smc(IMX_SIP_SRC, IMX_SIP_SRC_SET_SECONDARY_BOOT,
+			      secondary, 0, 0, 0, 0, 0, &res);
+	} else {
+		boot_mode_enable_secondary(secondary);
+	}
 
 	return CMD_RET_SUCCESS;
 }
