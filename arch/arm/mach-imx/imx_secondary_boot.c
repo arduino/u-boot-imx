@@ -88,11 +88,7 @@ U_BOOT_CMD(
 static int do_warm_reset(struct cmd_tbl *cmdtp, int flag,
 			 int argc, char * const argv[])
 {
-	unsigned long ret = 0;
-
-	ret = call_imx_sip(IMX_SIP_WARM_RESET, 0, 0, 0, 0);
-	if (ret)
-		return CMD_RET_FAILURE;
+	arm_smccc_smc(IMX_SIP_WARM_RESET, 0, 0, 0, 0, 0, 0, 0, NULL);
 
 	return CMD_RET_SUCCESS;
 }
