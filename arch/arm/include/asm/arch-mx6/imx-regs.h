@@ -457,6 +457,7 @@ extern void imx_get_mac_from_fuse(int dev_id, unsigned char *mac);
 #define SRC_SCR_CORE_3_ENABLE_MASK      (1<<SRC_SCR_CORE_3_ENABLE_OFFSET)
 
 #define SRC_GPR10_PERSIST_SECONDARY_BOOT	BIT(30)
+#define SRC_SBMR2_SEC_CONFIG			BIT(1)
 
 struct rdc_regs {
 	u32	vir;		/* Version information */

@@ -52,5 +52,6 @@ void finish_anatop_bypass(void);
 
 int boot_mode_getprisec(void);
 void boot_mode_enable_secondary(bool enable);
+int boot_mode_is_closed(void);
 
 #endif /* __SYS_PROTO_IMX6_ */

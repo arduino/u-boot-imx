@@ -689,6 +689,13 @@ void boot_mode_enable_secondary(bool enable)
 		clrbits_le32(&psrc->gpr10, persist_sec);
 }
 
+int boot_mode_is_closed(void)
+{
+	struct src *psrc = (struct src *)SRC_BASE_ADDR;
+
+	return !!(readl(&psrc->sbmr2) & SRC_SBMR2_SEC_CONFIG);
+}
+
 int boot_mode_getprisec(void)
 {
 	struct src *psrc = (struct src *)SRC_BASE_ADDR;
