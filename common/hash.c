@@ -93,6 +93,8 @@ static int hash_finish_sha256(struct hash_algo *algo, void *ctx, void
 }
 #endif
 
+#if (defined(CONFIG_SPL_BUILD) && !defined(CONFIG_SPL_FIT_SIGNATURE_STRICT)) || \
+    (!defined(CONFIG_SPL_BUILD) && !defined(CONFIG_FIT_SIGNATURE_STRICT))
 static int hash_init_crc16_ccitt(struct hash_algo *algo, void **ctxp)
 {
 	uint16_t *ctx = malloc(sizeof(uint16_t));
@@ -119,6 +121,7 @@ static int hash_finish_crc16_ccitt(struct hash_algo *algo, void *ctx,
 	free(ctx);
 	return 0;
 }
+#endif
 
 static int hash_init_crc32(struct hash_algo *algo, void **ctxp)
 {
@@ -194,6 +197,8 @@ static struct hash_algo hash_algo[] = {
 #endif
 	},
 #endif
+#if (defined(CONFIG_SPL_BUILD) && !defined(CONFIG_SPL_FIT_SIGNATURE_STRICT)) || \
+    (!defined(CONFIG_SPL_BUILD) && !defined(CONFIG_FIT_SIGNATURE_STRICT))
 	{
 		.name		= "crc16-ccitt",
 		.digest_size	= 2,
@@ -203,6 +208,7 @@ static struct hash_algo hash_algo[] = {
 		.hash_update	= hash_update_crc16_ccitt,
 		.hash_finish	= hash_finish_crc16_ccitt,
 	},
+#endif
 	{
 		.name		= "crc32",
 		.digest_size	= 4,
