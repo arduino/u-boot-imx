@@ -24,7 +24,7 @@ config FSL_CAAM_KB
 config SECONDARY_BOOT_RUNTIME_DETECTION
 	bool "SD/MMC sector offset runtime detection"
 	default n
-	depends on (IMX8MQ || IMX8MM || MX6ULL || MX6UL) && SPL_MMC_SUPPORT
+	depends on (IMX8MQ || IMX8MM || MX6ULL || MX6UL || MX6) && SPL_MMC_SUPPORT
 	help
 	  Detect correct sector offset in SPL for the next boot image
 	  in runtime.
@@ -32,7 +32,7 @@ config SECONDARY_BOOT_RUNTIME_DETECTION
 config SECONDARY_BOOT_SECTOR_OFFSET
 	hex "SD/MMC sector offset used for ROM secondary boot"
 	default 0x0
-	depends on IMX8MQ || IMX8MM || MX6ULL || MX6UL
+	depends on IMX8MQ || IMX8MM || MX6ULL || MX6UL || MX6
 	help
 	  Set the sector offset to non-zero value in SPL used for
 	  secondary boot image. This value should be same as the
