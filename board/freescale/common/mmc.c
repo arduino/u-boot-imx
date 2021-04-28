@@ -49,24 +49,3 @@ void board_late_mmc_env_init(void)
 	sprintf(cmd, "mmc dev %d", dev_no);
 	run_command(cmd, 0);
 }
-
-#if defined(CONFIG_SECONDARY_BOOT_RUNTIME_DETECTION) && \
-    defined(CONFIG_SYS_MMCSD_RAW_MODE_U_BOOT_USE_SECTOR)
-unsigned long spl_mmc_get_uboot_raw_sector(struct mmc *mmc,
-					   unsigned long raw_sect)
-{
-	int boot_secondary = boot_mode_getprisec();
-	unsigned long offset = CONFIG_SYS_MMCSD_RAW_MODE_U_BOOT_SECTOR;
-
-	if (boot_secondary) {
-		offset += CONFIG_SECONDARY_BOOT_SECTOR_OFFSET;
-		printf("SPL: Booting secondary boot path: using 0x%lx offset "
-		       "for next boot image\n", offset);
-	} else {
-		printf("SPL: Booting primary boot path: using 0x%lx offset "
-		       "for next boot image\n", offset);
-	}
-
-	return offset;
-}
-#endif
