@@ -10,6 +10,8 @@
 #ifndef _WATCHDOG_H_
 #define _WATCHDOG_H_
 
+#if !defined(USE_HOSTCC)
+
 #if !defined(__ASSEMBLY__)
 /*
  * Reset the watchdog timer, always returns 0
@@ -35,7 +37,7 @@ int init_func_watchdog_reset(void);
 /*
  * Hardware watchdog
  */
-#ifdef CONFIG_HW_WATCHDOG
+#if CONFIG_IS_ENABLED(HW_WATCHDOG)
 	#if defined(__ASSEMBLY__)
 		#define WATCHDOG_RESET bl hw_watchdog_reset
 	#else
@@ -84,4 +86,5 @@ int init_func_watchdog_reset(void);
 #if defined(CONFIG_MPC85xx) && !defined(__ASSEMBLY__)
 	void init_85xx_watchdog(void);
 #endif
+#endif /* !defined(USE_HOSTCC) */
 #endif /* _WATCHDOG_H_ */
