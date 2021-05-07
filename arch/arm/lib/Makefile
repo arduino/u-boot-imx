@@ -57,8 +57,15 @@ obj-y	+= interrupts_64.o
 else
 obj-y	+= interrupts.o
 endif
+
+ifndef CONFIG_SPL_BUILD
 ifndef CONFIG_SYSRESET
 obj-y	+= reset.o
+endif
+else
+ifndef CONFIG_SPL_SYSRESET
+obj-y	+= reset.o
+endif
 endif
 
 obj-y	+= cache.o
