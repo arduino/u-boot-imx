@@ -309,7 +309,9 @@
 #endif
 #endif
 
+#ifndef CONFIG_SPL_BUILD
 #define CONFIG_MODULE_FUSE
 #define CONFIG_OF_SYSTEM_SETUP
+#endif
 
 #endif
