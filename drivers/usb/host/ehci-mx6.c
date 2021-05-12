@@ -104,7 +104,7 @@ int ehci_hcd_init(int index, enum usb_init_type init,
 	if (index > 3)
 		return -EINVAL;
 
-#if defined(CONFIG_MX6)
+#if defined(CONFIG_MX6) && defined(CONFIG_MODULE_FUSE)
 	if (mx6_usb_fused((u32)ehci)) {
 		printf("USB@0x%x is fused, disable it\n", (u32)ehci);
 		return -ENODEV;
