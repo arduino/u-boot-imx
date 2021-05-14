@@ -174,6 +174,7 @@ config EFI_CAPSULE_AUTHENTICATE
 	select PKCS7_MESSAGE_PARSER
 	select PKCS7_VERIFY
 	select IMAGE_SIGN_INFO
+	select EFI_SIGNATURE_SUPPORT
 	default n
 	help
 	  Select this option if you want to enable capsule
@@ -342,12 +343,16 @@ config EFI_SECURE_BOOT
 	select X509_CERTIFICATE_PARSER
 	select PKCS7_MESSAGE_PARSER
 	select PKCS7_VERIFY
+	select EFI_SIGNATURE_SUPPORT
 	default n
 	help
 	  Select this option to enable EFI secure boot support.
 	  Once SecureBoot mode is enforced, any EFI binary can run only if
 	  it is signed with a trusted key. To do that, you need to install,
 	  at least, PK, KEK and db.
+
+config EFI_SIGNATURE_SUPPORT
+	bool
 
 config EFI_ESRT
 	bool "Enable the UEFI ESRT generation"
