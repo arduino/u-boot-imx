@@ -217,3 +217,8 @@ int add_res_mem_dt_node(void *fdt, const char *name, phys_addr_t pa,
 	}
 	return 0;
 }
+
+int __weak boot_mode_is_closed(void)
+{
+	return 0;
+}

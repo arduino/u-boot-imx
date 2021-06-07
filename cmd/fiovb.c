@@ -20,6 +20,9 @@ int do_fiovb_init(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	if (argc != 2)
 		return CMD_RET_USAGE;
 
+	if (!boot_mode_is_closed())
+		return CMD_RET_FAILURE;
+
 	mmc_dev = simple_strtoul(argv[1], NULL, 16);
 
 	if (fiovb_ops)
