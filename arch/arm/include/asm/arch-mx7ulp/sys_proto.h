@@ -41,4 +41,8 @@ enum boot_device get_boot_device(void);
 #define M4_FW_VALID(x) (((x) == 0x402000d1) || ((x) == 0x412000d1))
 
 
-#endif
+int boot_mode_getprisec(void);
+void boot_mode_enable_secondary(bool enable);
+int boot_mode_is_closed(void);
+
+#endif /* _SYS_PROTO_MX7ULP_H_ */
