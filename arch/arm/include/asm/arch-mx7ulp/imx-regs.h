@@ -1080,6 +1080,17 @@ struct fuse_bank7_regs {
 	u32	rsvd7[3];
 };
 
+#define UPDATE_DGO_GP10 BIT(3)
+#define WR_ACK_DGO_GP10 BIT(16)
+#define SIM_DGO_GP10_SECONDARY_BOOT BIT(30)
+
+struct sim_regs {
+	u32	rsvd0[21];
+	u32	sim_dg0_ctrl1;			/* 0x054 */
+	u32	rsvd1[9];
+	u32	sim_dg0_gp10;			/* 0x07c */
+};
+
 struct usbphy_regs {
 	u32	usbphy_pwd;			/* 0x000 */
 	u32	usbphy_pwd_set;			/* 0x004 */

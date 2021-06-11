@@ -445,6 +445,37 @@ int mmc_get_env_dev(void)
 	return board_mmc_get_env_dev(devno);
 }
 
+void boot_mode_enable_secondary(bool enable)
+{
+	u32 persist_sec = SIM_DGO_GP10_SECONDARY_BOOT;
+	struct sim_regs *psrc = (struct sim_regs *) SIM0_RBASE;
+
+	if (enable)
+		setbits_le32(&psrc->sim_dg0_gp10, persist_sec);
+	else
+		clrbits_le32(&psrc->sim_dg0_gp10, persist_sec);
+
+	/* Now do DGO protocol */
+	setbits_le32(&psrc->sim_dg0_ctrl1, UPDATE_DGO_GP10);
+	while(!(readl(&psrc->sim_dg0_ctrl1) & WR_ACK_DGO_GP10))
+		;
+
+	clrbits_le32(&psrc->sim_dg0_ctrl1, UPDATE_DGO_GP10);
+	setbits_le32(&psrc->sim_dg0_ctrl1, WR_ACK_DGO_GP10);
+}
+
+int boot_mode_is_closed(void)
+{
+	return imx_hab_is_enabled();
+}
+
+int boot_mode_getprisec(void)
+{
+	struct sim_regs *psrc = (struct sim_regs *) SIM0_RBASE;
+
+	return !!(readl(&psrc->sim_dg0_gp10) & SIM_DGO_GP10_SECONDARY_BOOT);
+}
+
 enum boot_device get_boot_device(void)
 {
 	struct bootrom_sw_info **p =
