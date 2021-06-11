@@ -66,7 +66,7 @@ static ulong secondary_image_table_mmc_offset(void)
 {
 	if (is_imx8mq() || is_imx8mm() || ((is_imx8qm() || is_imx8qxp()) && is_soc_rev(CHIP_REV_A))) {
 		return 0x8200;
-	} else if (is_mx6()) {
+	} else if (is_mx6() || is_mx7() || is_mx7ulp()) {
 		return 0x200;
 	}
 }
