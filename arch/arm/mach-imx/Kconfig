@@ -32,7 +32,7 @@ config IMX_SEC_INIT
 config SECONDARY_BOOT_RUNTIME_DETECTION
 	bool "SD/MMC sector offset runtime detection"
 	default n
-	depends on (IMX8MQ || IMX8MM || MX6ULL || MX6UL || MX6) && SPL_MMC_SUPPORT
+	depends on (IMX8MQ || IMX8MM || MX6ULL || MX6UL || MX6 || MX7 || MX7ULP) && SPL_MMC_SUPPORT
 	help
 	  Detect correct sector offset in SPL for the next boot image
 	  in runtime.
@@ -40,7 +40,7 @@ config SECONDARY_BOOT_RUNTIME_DETECTION
 config SECONDARY_BOOT_SECTOR_OFFSET
 	hex "SD/MMC sector offset used for ROM secondary boot"
 	default 0x0
-	depends on IMX8MQ || IMX8MM || MX6ULL || MX6UL || MX6
+	depends on IMX8MQ || IMX8MM || MX6ULL || MX6UL || MX6 || MX7 || MX7ULP
 	help
 	  Set the sector offset to non-zero value in SPL used for
 	  secondary boot image. This value should be same as the
@@ -63,7 +63,7 @@ config IMX_BOOTAUX
 config CMD_SECONDARY_BOOT
 	bool "Use SiP service exposed by trusted firmware for redundant boot control"
 	default n
-	depends on ARCH_IMX8M || ARCH_MX6
+	depends on ARCH_IMX8M || ARCH_MX6 || ARCH_MX7 || ARCH_MX7ULP
 	help
 	  Command for triggering SiP service provided by TF-A for setting/clearing
 	  SRC GPR10 PERSIST_SECONDARY_BOOT bit, that identifies which image will be
