@@ -464,9 +464,13 @@ void boot_mode_enable_secondary(bool enable)
 	setbits_le32(&psrc->sim_dg0_ctrl1, WR_ACK_DGO_GP10);
 }
 
+#define CMC_MR_SEC_CONFIG (1 << 17)
+
 int boot_mode_is_closed(void)
 {
-	return imx_hab_is_enabled();
+	u32 *reg_mr = (u32 *)(SRC_BASE_ADDR + 0x40);
+
+	return !!(readl(reg_mr) & CMC_MR_SEC_CONFIG);
 }
 
 int boot_mode_getprisec(void)
