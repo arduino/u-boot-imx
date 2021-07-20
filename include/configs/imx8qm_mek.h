@@ -162,6 +162,7 @@
 	XEN_BOOT_ENV \
 	JAILHOUSE_ENV\
 	AHAB_ENV \
+	"scriptaddr=0x83100000\0" \
 	"script=boot.scr\0" \
 	"image=Image\0" \
 	"splashimage=0x9e000000\0" \
@@ -264,7 +265,7 @@
 #endif /* CONFIG_BOOTCOMMAND */
 
 /* Link Definitions */
-#define CONFIG_LOADADDR			0x80280000
+#define CONFIG_LOADADDR			0x87000000
 
 #define CONFIG_SYS_LOAD_ADDR           CONFIG_LOADADDR
 
