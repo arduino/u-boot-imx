@@ -959,7 +959,7 @@ static void run_ucmd(char *cmd_parameter, char *response)
 	}
 }
 
-static char g_a_cmd_buff[64];
+static char g_a_cmd_buff[128];
 
 void fastboot_acmd_complete(void)
 {
