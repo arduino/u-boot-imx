@@ -3,6 +3,7 @@
  * Copyright 2019 Toradex
  */
 
+#include <command.h>
 #include <common.h>
 #include <cpu_func.h>
 #include <init.h>
@@ -41,6 +42,7 @@ DECLARE_GLOBAL_DATA_PTR;
 #define GPIO_PAD_CTRL	((SC_PAD_CONFIG_NORMAL << PADRING_CONFIG_SHIFT) | (SC_PAD_ISO_OFF << PADRING_LPCONFIG_SHIFT) \
 						| (SC_PAD_28FDSOI_DSE_DV_HIGH << PADRING_DSE_SHIFT) | (SC_PAD_28FDSOI_PS_PU << PADRING_PULL_SHIFT))
 
+#ifndef CONFIG_SPL_BUILD
 #define PCB_VERS_DEFAULT	((SC_PAD_CONFIG_NORMAL << PADRING_CONFIG_SHIFT) | \
 				 (SC_PAD_ISO_OFF << PADRING_LPCONFIG_SHIFT) | \
 				 (SC_PAD_28FDSOI_PS_PD << PADRING_PULL_SHIFT) | \
@@ -60,6 +62,7 @@ static iomux_cfg_t pcb_vers_default[] = {
 	SC_P_MIPI_DSI0_GPIO0_00 | MUX_MODE_ALT(3) | MUX_PAD_CTRL(PCB_VERS_DEFAULT),
 	SC_P_MIPI_DSI0_GPIO0_01 | MUX_MODE_ALT(3) | MUX_PAD_CTRL(PCB_VERS_DEFAULT),
 };
+#endif
 
 static iomux_cfg_t uart1_pads[] = {
 	SC_P_UART1_RX | MUX_PAD_CTRL(UART_PAD_CTRL),
@@ -225,6 +228,7 @@ void board_late_mmc_env_init(void)
 	run_command(cmd, 0);
 }
 
+#ifndef CONFIG_SPL_BUILD
 static pcb_rev_t get_pcb_revision(void)
 {
 	unsigned int pcb_vers = 0;
@@ -291,6 +295,23 @@ U_BOOT_CMD(
 	select_dt_from_module_version, CONFIG_SYS_MAXARGS, 1, do_select_dt_from_module_version,
 	"\n", "    - select devicetree from module version"
 );
+#endif
+
+/*
+ * We release the UART in the SPL hand-off, but don't release it due
+ * to the bug in the u-boot proper hand off, as there
+ * won't be serial output in Linux
+ */
+#ifdef CONFIG_SPL_BUILD
+void board_quiesce_devices(void)
+{
+	const char *power_on_devices[] = {
+		"dma_lpuart1",
+	};
+
+	imx8_power_off_pd_devices(power_on_devices, ARRAY_SIZE(power_on_devices));
+}
+#endif
 
 int board_mmc_get_env_dev(int devno)
 {
@@ -335,6 +356,10 @@ int board_late_init(void)
 	run_command(command, 0);
 #endif
 #endif /* CONFIG_IMX_LOAD_HDMI_FIMRWARE_RX || CONFIG_IMX_LOAD_HDMI_FIMRWARE_TX */
+
+#ifndef CONFIG_SPL_BUILD
+	select_dt_from_module_version();
+#endif
 
 	return 0;
 }
