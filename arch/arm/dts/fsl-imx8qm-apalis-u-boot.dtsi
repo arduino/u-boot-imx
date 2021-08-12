@@ -41,6 +41,26 @@
 	u-boot,dm-spl;
 };
 
+&{/regulators} {
+	u-boot,dm-spl;
+};
+
+&reg_usdhc2_vmmc {
+	u-boot,dm-spl;
+};
+
+&pinctrl_usdhc2 {
+	u-boot,dm-spl;
+};
+
+&pinctrl_lpuart0 {
+	u-boot,dm-spl;
+};
+
+&pinctrl_lpuart1 {
+	u-boot,dm-spl;
+};
+
 &pd_lsio {
 	u-boot,dm-spl;
 };
