@@ -44,7 +44,7 @@ static int fiovb_provisioned(void)
 	unsigned int fiohab_dev = env_get_ulong("fiohab_dev", 10, 0xFFUL);
 
 	if (fiohab_dev == 0xFFUL) {
-		printf("fiohav_dev var is not defined!\n");
+		printf("fiohab_dev var is not defined!\n");
 		return -EINVAL;
 	}
 
