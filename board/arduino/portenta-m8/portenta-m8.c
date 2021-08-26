@@ -20,6 +20,7 @@
 #ifdef CONFIG_USB_TCPC
 #include "tcpc.h"
 #endif
+#include "anx7625.h"
 
 /**
  * External USB Hub configuration
@@ -389,6 +390,12 @@ int board_init(void)
 {
 #if defined(CONFIG_USB_TCPC) && !defined(CONFIG_SPL_BUILD)
 	setup_typec();
+#endif
+
+	/* ANX7625 usb typec controller and power delivery configuration on portenta-m8 */
+	/* @TODO: selectable with CONFIG_USB_TCPC? */
+#ifndef CONFIG_SPL_BUILD
+	anx7625_probe();
 #endif
 
 #ifdef CONFIG_FEC_MXC

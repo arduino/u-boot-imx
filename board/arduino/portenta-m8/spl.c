@@ -212,6 +212,9 @@ int power_init_board(void)
 	pmic_reg_write(p, BD71837_BUCK8_VOLT, 0x28);
 #endif
 
+	/* enable LDO5 and set to 3.0V for ANX7625 */
+	pmic_reg_write(p, BD71837_LDO5_VOLT, 0xcc);
+
 	/* lock the PMIC regs */
 	pmic_reg_write(p, BD71837_REGLOCK, 0x11);
 
