@@ -5,6 +5,9 @@
 #
 
 obj-y += portenta-m8.o
+ifndef CONFIG_SPL_BUILD
+obj-y += anx7625.o
+endif
 
 obj-y += mmc.o
 

@@ -24,6 +24,8 @@
 #include <imx_sip.h>
 #include <linux/arm-smccc.h>
 
+#include "anx7625.h"
+
 /**
  * External USB Hub configuration
  */
@@ -389,6 +391,12 @@ int board_init(void)
 
 #if IS_ENABLED(CONFIG_FEC_MXC)
 	setup_fec();
+#endif
+
+	/* ANX7625 usb typec controller and power delivery configuration on portenta-m8 */
+	/* @TODO: selectable with CONFIG_USB_TCPC? */
+#ifndef CONFIG_SPL_BUILD
+	anx7625_probe();
 #endif
 
 	arm_smccc_smc(IMX_SIP_GPC, IMX_SIP_GPC_PM_DOMAIN,
