@@ -108,6 +108,11 @@ config TARGET_IMX8MM_DDR4_EVK
 	select MISC
 	select SPL_CRYPTO_SUPPORT if SPL
 
+config TARGET_PORTENTA_M8
+	bool "imx8mm portenta m8 board"
+	select IMX8MM
+	select IMX8M_LPDDR4
+
 config TARGET_IMX8MN_EVK
 	bool "imx8mn LPDDR4 EVK board"
 	select IMX8MN
@@ -194,6 +199,7 @@ config TARGET_PHYCORE_IMX8MP
 	select IMX8M_LPDDR4
 endchoice
 
+source "board/arduino/portenta-m8/Kconfig"
 source "board/freescale/imx8mq_evk/Kconfig"
 source "board/freescale/imx8mq_val/Kconfig"
 source "board/freescale/imx8mm_evk/Kconfig"

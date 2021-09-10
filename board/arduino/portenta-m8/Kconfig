@@ -1,0 +1,14 @@
+if TARGET_PORTENTA_M8
+
+config SYS_BOARD
+	default "portenta-m8"
+
+config SYS_VENDOR
+	default "arduino"
+
+config SYS_CONFIG_NAME
+	default "portenta-m8"
+
+source "board/freescale/common/Kconfig"
+
+endif
