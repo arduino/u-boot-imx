@@ -11,6 +11,10 @@
 #include <linux/sizes.h>
 #include <asm/arch/imx-regs.h>
 
+#ifdef CONFIG_SPL
+#include "imx7ulp_spl.h"
+#endif
+
 #define CONFIG_BOARD_POSTCLK_INIT
 #define CONFIG_SYS_BOOTM_LEN		0x1000000
 
@@ -120,6 +124,8 @@
 #define QSPI0_BASE_ADDR                 0x410A5000
 #define QSPI0_AMBA_BASE                 0xC0000000
 #endif
+
+#define CONFIG_ARMV7_SECURE_BASE	0x2F000000
 
 #define CONFIG_MXC_USB_PORTSC		(PORT_PTS_UTMI | PORT_PTS_PTW)
 #endif	/* __CONFIG_H */
