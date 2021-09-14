@@ -499,7 +499,7 @@ void smp_waitloop(unsigned previous_address)
 #endif
 #endif
 
-void reset_cpu(ulong addr)
+void __weak reset_cpu(ulong addr)
 {
 	struct watchdog_regs *wdog = (struct watchdog_regs *)WDOG1_BASE_ADDR;
 
