@@ -53,9 +53,6 @@
 #define CONFIG_LBA48
 #endif
 
-/* Network */
-#define PHY_ANEG_TIMEOUT		15000 /* PHY needs longer aneg time */
-
 /* USB Configs */
 /* Host */
 #define CONFIG_USB_MAX_CONTROLLER_COUNT		2
