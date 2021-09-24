@@ -22,6 +22,8 @@ DECLARE_GLOBAL_DATA_PTR;
 
 #define UART_PAD_CTRL		(PAD_CTL_PUS_UP)
 #define QSPI_PAD_CTRL1		(PAD_CTL_PUS_UP | PAD_CTL_DSE)
+#define OTG_ID_GPIO_PAD_CTRL	(PAD_CTL_IBE_ENABLE)
+#define OTG_PWR_GPIO_PAD_CTRL   (PAD_CTL_OBE_ENABLE)
 
 int dram_init(void)
 {
@@ -79,6 +81,54 @@ int board_qspi_init(void)
 }
 #endif
 
+#ifdef CONFIG_USB_EHCI_MX6
+static iomux_cfg_t const usb_otg1_pads[] = {
+	/* gpio for otgid */
+	MX7ULP_PAD_PTC13__PTC13 | MUX_PAD_CTRL(OTG_ID_GPIO_PAD_CTRL),
+	/* gpio for power en */
+	MX7ULP_PAD_PTE15__PTE15 | MUX_PAD_CTRL(OTG_PWR_GPIO_PAD_CTRL),
+};
+
+#define OTG0_ID_GPIO	IMX_GPIO_NR(3, 13)
+#define OTG0_PWR_EN	IMX_GPIO_NR(5, 15)
+
+static void setup_usb(void)
+{
+	mx7ulp_iomux_setup_multiple_pads(usb_otg1_pads,
+						 ARRAY_SIZE(usb_otg1_pads));
+
+	gpio_request(OTG0_ID_GPIO, "otg_id");
+	gpio_direction_input(OTG0_ID_GPIO);
+}
+
+/* Needs to override the ehci power if controlled by GPIO */
+int board_ehci_power(int port, int on)
+{
+	switch (port) {
+	case 0:
+		if (on)
+			gpio_direction_output(OTG0_PWR_EN, 1);
+		else
+			gpio_direction_output(OTG0_PWR_EN, 0);
+		break;
+	default:
+		printf("MXC USB port %d not yet supported\n", port);
+		return -EINVAL;
+	}
+
+	return 0;
+}
+
+int board_usb_phy_mode(int port)
+{
+	/* The device mode is valid for port 0 only */
+	if (port == 0 && gpio_get_value(OTG0_ID_GPIO))
+		return USB_INIT_DEVICE;
+
+	return USB_INIT_HOST;
+}
+#endif
+
 int board_early_init_f(void)
 {
 	setup_iomux_uart();
@@ -102,6 +152,10 @@ int board_init(void)
 {
 	/* address of boot parameters */
 	gd->bd->bi_boot_params = PHYS_SDRAM + 0x100;
+
+#ifdef CONFIG_USB_EHCI_MX6
+	setup_usb();
+#endif
 
 #ifdef CONFIG_FSL_QSPI
 	board_qspi_init();
