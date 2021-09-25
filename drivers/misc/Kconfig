@@ -233,6 +233,15 @@ config MXC_OCOTP
 	  Programmable memory pages that are stored on the some
 	  Freescale i.MX processors.
 
+config SPL_MXC_OCOTP
+	bool "Enable MXC OCOTP driver in SPL"
+	depends on SPL && (ARCH_IMX8M || ARCH_MX6 || ARCH_MX7 || ARCH_MX7ULP || ARCH_VF610)
+	default y
+	help
+	  If you say Y here, you will get support for the One Time
+	  Programmable memory pages, that are stored on some
+	  Freescale i.MX processors, in SPL.
+
 config IMX_M4_MU
 	bool "Enable i.MX MU Driver to communicate with Cortex M4"
 	depends on MISC
