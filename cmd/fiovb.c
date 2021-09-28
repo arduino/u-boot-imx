@@ -13,7 +13,7 @@
 
 static struct fiovb_ops *fiovb_ops;
 
-int do_fiovb_init(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+int do_fiovb_init(struct cmd_tbl *cmdtp, int flag, int argc, char * const argv[])
 {
 	unsigned long mmc_dev;
 
@@ -34,7 +34,7 @@ int do_fiovb_init(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	return CMD_RET_FAILURE;
 }
 
-int do_fiovb_read_pvalue(cmd_tbl_t *cmdtp, int flag, int argc,
+int do_fiovb_read_pvalue(struct cmd_tbl *cmdtp, int flag, int argc,
 		         char * const argv[])
 {
 	const char *name;
@@ -81,7 +81,7 @@ int do_fiovb_read_pvalue(cmd_tbl_t *cmdtp, int flag, int argc,
 	return CMD_RET_FAILURE;
 }
 
-int do_fiovb_write_pvalue(cmd_tbl_t *cmdtp, int flag, int argc,
+int do_fiovb_write_pvalue(struct cmd_tbl *cmdtp, int flag, int argc,
 			  char * const argv[])
 {
 	const char *name;
@@ -113,7 +113,7 @@ int do_fiovb_write_pvalue(cmd_tbl_t *cmdtp, int flag, int argc,
 	return CMD_RET_FAILURE;
 }
 
-int do_fiovb_delete_pvalue(cmd_tbl_t *cmdtp, int flag, int argc,
+int do_fiovb_delete_pvalue(struct cmd_tbl *cmdtp, int flag, int argc,
 			   char * const argv[])
 {
 	const char *name;
@@ -142,16 +142,16 @@ int do_fiovb_delete_pvalue(cmd_tbl_t *cmdtp, int flag, int argc,
 	return CMD_RET_FAILURE;
 }
 
-static cmd_tbl_t cmd_fiovb[] = {
+static struct cmd_tbl cmd_fiovb[] = {
 	U_BOOT_CMD_MKENT(init, 2, 0, do_fiovb_init, "", ""),
 	U_BOOT_CMD_MKENT(read_pvalue, 3, 0, do_fiovb_read_pvalue, "", ""),
 	U_BOOT_CMD_MKENT(write_pvalue, 3, 0, do_fiovb_write_pvalue, "", ""),
 	U_BOOT_CMD_MKENT(delete_pvalue, 2, 0, do_fiovb_delete_pvalue, "", ""),
 };
 
-static int do_fiovb(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+static int do_fiovb(struct cmd_tbl *cmdtp, int flag, int argc, char * const argv[])
 {
-	cmd_tbl_t *cp;
+	struct cmd_tbl *cp;
 
 	cp = find_cmd_tbl(argv[1], cmd_fiovb, ARRAY_SIZE(cmd_fiovb));
 
