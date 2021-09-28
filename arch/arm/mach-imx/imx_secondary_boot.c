@@ -15,7 +15,7 @@
 #include <linux/compiler.h>
 #include <cpu_func.h>
 
-static int do_imx_secondary_boot(cmd_tbl_t *cmdtp, int flag,
+static int do_imx_secondary_boot(struct cmd_tbl *cmdtp, int flag,
 				 int argc, char * const argv[])
 {
 	u32 secondary = 0;
@@ -62,7 +62,7 @@ U_BOOT_CMD(
 	"   1 - set secondary image\n"
 );
 
-static int do_imx_is_closed(cmd_tbl_t *cmdtp, int flag,
+static int do_imx_is_closed(struct cmd_tbl *cmdtp, int flag,
 			    int argc, char * const argv[])
 {
 	int ret;
@@ -85,7 +85,7 @@ U_BOOT_CMD(
 	"Check if the board is closed", ""
 );
 
-static int do_warm_reset(cmd_tbl_t *cmdtp, int flag,
+static int do_warm_reset(struct cmd_tbl *cmdtp, int flag,
 			 int argc, char * const argv[])
 {
 	unsigned long ret = 0;
