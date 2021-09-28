@@ -23,7 +23,7 @@ int fsl_mod_exp(struct udevice *dev, const uint8_t *sig, uint32_t sig_len,
 	struct pk_in_params pkin;
 	uint32_t desc[MAX_CAAM_DESCSIZE];
 	int ret;
-	fdt64_t exp = fdt64_to_cpu(*prop->public_exponent);
+	fdt64_t exp = fdt64_to_cpu(prop->public_exponent);
 
 	/* Length in bytes */
 	keylen = prop->num_bits / 8;
