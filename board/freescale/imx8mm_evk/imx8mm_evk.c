@@ -302,9 +302,9 @@ int board_init(void)
 {
 	struct arm_smccc_res res;
 
-	if (IS_ENABLED(CONFIG_USB_TCPC) &&
-	   !IS_ENABLED(CONFIG_SPL_BUILD))
-		setup_typec();
+#if defined(CONFIG_USB_TCPC) && !defined(CONFIG_SPL_BUILD)
+	setup_typec();
+#endif
 
 	if (IS_ENABLED(CONFIG_FEC_MXC))
 		setup_fec();
