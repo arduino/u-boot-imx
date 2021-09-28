@@ -16,6 +16,7 @@
 #include <asm/cache.h>
 #include <asm/global_data.h>
 #include <linux/libfdt.h>
+#include <hang.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -329,13 +330,14 @@ static int spl_load_fit_image(struct spl_load_info *info, ulong sector,
 	if (CONFIG_IS_ENABLED(FIT_SIGNATURE)) {
 		printf("## Checking hash(es) for Image %s ... ",
 		       fit_get_name(fit, node, NULL));
-		if (!fit_image_verify_with_data(fit, node, src, length))
+		if (!fit_image_verify_with_data(fit, node, src, length)) {
 			if (CONFIG_IS_ENABLED(FIT_SIGNATURE_STRICT)) {
 				puts("Invalid FIT signature found in a required image.\n");
 				hang();
 			} else {
 				return -EPERM;
 			}
+		}
 		puts("OK\n");
 	}
 
