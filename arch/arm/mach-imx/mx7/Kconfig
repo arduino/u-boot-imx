@@ -56,8 +56,8 @@ config TARGET_MX7DSABRESD
 	select DM_THERMAL
 	select MX7D
 	imply CMD_DM
-	select FSL_CAAM
-	select FSL_BLOB
+	imply FSL_CAAM
+	imply FSL_BLOB
 	select MISC
 
 config TARGET_MX7D_12X12_LPDDR3_VAL

@@ -434,8 +434,8 @@ config TARGET_MX6QSABREAUTO
     bool "mx6qsabreauto"
     select TARGET_MX6SABREAUTO_COMMON
     depends on MX6Q
-    select FSL_CAAM
-    select FSL_BLOB
+    imply FSL_CAAM
+    imply FSL_BLOB
     select MISC
     select ARCH_MISC_INIT
 
@@ -443,8 +443,8 @@ config TARGET_MX6QPSABREAUTO
     bool "mx6qpsabreauto"
     select TARGET_MX6SABREAUTO_COMMON
     depends on MX6QP
-    select FSL_CAAM
-    select FSL_BLOB
+    imply FSL_CAAM
+    imply FSL_BLOB
     select MISC
     select ARCH_MISC_INIT
 
@@ -452,8 +452,8 @@ config TARGET_MX6DLSABREAUTO
     bool "mx6dlsabreauto"
     select TARGET_MX6SABREAUTO_COMMON
     depends on MX6DL
-    select FSL_CAAM
-    select FSL_BLOB
+    imply FSL_CAAM
+    imply FSL_BLOB
     select MISC
     select ARCH_MISC_INIT
 
@@ -461,8 +461,8 @@ config TARGET_MX6SOLOSABREAUTO
     bool "mx6solosabreauto"
     select TARGET_MX6SABREAUTO_COMMON
     depends on MX6S
-    select FSL_CAAM
-    select FSL_BLOB
+    imply FSL_CAAM
+    imply FSL_BLOB
     select MISC
     select ARCH_MISC_INIT
 
@@ -470,8 +470,8 @@ config TARGET_MX6QSABRESD
 	bool "mx6qsabresd"
     select TARGET_MX6SABRESD_COMMON
     depends on MX6Q
-    select FSL_CAAM
-    select FSL_BLOB
+    imply FSL_CAAM
+    imply FSL_BLOB
     select MISC
     select ARCH_MISC_INIT
 
@@ -479,8 +479,8 @@ config TARGET_MX6QPSABRESD
 	bool "mx6qpsabresd"
     select TARGET_MX6SABRESD_COMMON
     depends on MX6QP
-    select FSL_CAAM
-    select FSL_BLOB
+    imply FSL_CAAM
+    imply FSL_BLOB
     select MISC
     select ARCH_MISC_INIT
 
@@ -488,8 +488,8 @@ config TARGET_MX6DLSABRESD
 	bool "mx6dlsabresd"
     select TARGET_MX6SABRESD_COMMON
     depends on MX6DL
-    select FSL_CAAM
-    select FSL_BLOB
+    imply FSL_CAAM
+    imply FSL_BLOB
     select MISC
     select ARCH_MISC_INIT
 
@@ -497,8 +497,8 @@ config TARGET_MX6SOLOSABRESD
 	bool "mx6solosabresd"
     select TARGET_MX6SABRESD_COMMON
     depends on MX6S
-    select FSL_CAAM
-    select FSL_BLOB
+    imply FSL_CAAM
+    imply FSL_BLOB
     select MISC
     select ARCH_MISC_INIT
 
@@ -531,8 +531,8 @@ config TARGET_MX6SXSABRESD
 	select DM
 	select DM_THERMAL
 	select SUPPORT_SPL
-	select FSL_CAAM
-	select FSL_BLOB
+	imply FSL_CAAM
+	imply FSL_BLOB
 	select MISC
 	select ARCH_MISC_INIT
 
@@ -593,8 +593,8 @@ config TARGET_MX6UL_14X14_EVK
 	select IMX_MODULE_FUSE
 	select OF_SYSTEM_SETUP
 	imply CMD_DM
-	select FSL_CAAM
-	select FSL_BLOB
+	imply FSL_CAAM
+	imply FSL_BLOB
 	select MISC
 	select ARCH_MISC_INIT
 
