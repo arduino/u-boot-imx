@@ -664,6 +664,8 @@ void board_init_r(gd_t *dummy1, ulong dummy2)
 #if CONFIG_IS_ENABLED(WDT)
 	initr_watchdog();
 #else /* SPL_HW_WATCHDOG */
+# include <watchdog.h>
+
 	hw_watchdog_init();
 #endif
 #endif
