@@ -294,6 +294,9 @@
 #define CONFIG_VIDEO_BMP_RLE8
 #define CONFIG_VIDEO_BMP_LOGO
 #endif
+#else /* for SPL_BUILD disable these subsystems */
+#undef CONFIG_MODULE_FUSE
+#undef CONFIG_OF_SYSTEM_SETUP
 #endif
 
 #endif
