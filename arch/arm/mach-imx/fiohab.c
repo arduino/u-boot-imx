@@ -127,7 +127,7 @@ static int hab_status(void)
  * if RPMB keys have been provisioned as it would render it unavailable
  * afterwards
  */
-static int do_fiohab_close(cmd_tbl_t *cmdtp, int flag, int argc,
+static int do_fiohab_close(struct cmd_tbl *cmdtp, int flag, int argc,
 			   char *const argv[])
 {
 	struct srk_fuse {
