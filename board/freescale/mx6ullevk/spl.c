@@ -11,6 +11,8 @@
 #include <asm/arch/imx-regs.h>
 #include <asm/arch/mx6ull_pins.h>
 #include <asm/mach-imx/iomux-v3.h>
+#include <clock_legacy.h>
+#include <init.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
