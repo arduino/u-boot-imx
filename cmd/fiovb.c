@@ -10,6 +10,7 @@
 #include <malloc.h>
 #include <mmc.h>
 #include <fiovb.h>
+#include <asm/arch/sys_proto.h>
 
 static struct fiovb_ops *fiovb_ops;
 
