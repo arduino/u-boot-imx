@@ -635,27 +635,19 @@ int spl_load_simple_fit(struct spl_image_info *spl_image,
 	if (ret < 0)
 		return ret;
 
-	if (CONFIG_IS_ENABLED(FIT_SIGNATURE_STRICT)) {
-		int cfg_noffset = fit_conf_get_node(fit, NULL);
-
-		if (cfg_noffset >= 0) {
-			if (fit_config_verify(fit, cfg_noffset)) {
-				puts("Unable to verify the required FIT config.\n");
-				hang();
-			}
-		} else {
-			puts("SPL_FIT_SIGNATURE_STRICT needs a config node in FIT\n");
-			hang();
-		}
-	}
-
 	/* skip further processing if requested to enable load-only use cases */
 	if (spl_load_simple_fit_skip_processing())
 		return 0;
 
 	ret = spl_simple_fit_parse(&ctx);
-	if (ret < 0)
-		return ret;
+	if (ret < 0) {
+		if (CONFIG_IS_ENABLED(FIT_SIGNATURE_STRICT)) {
+			puts("SPL_FIT_SIGNATURE_STRICT needs a valid config node in FIT\n");
+			hang();
+		} else {
+			return ret;
+		}
+	}
 
 #if defined(CONFIG_DUAL_BOOTLOADER) && defined(CONFIG_IMX_TRUSTY_OS)
     int rbindex;
