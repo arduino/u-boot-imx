@@ -149,8 +149,8 @@ enum anx7625_pd_msg_type {
 #define ANX7625_DUMP_MSG              1
 /* #define ANX7625_VERBOSE              1 */
 #define ANX7625_NEGOTIATE_PD          1
-/* #define ANX7625_NEGOTIATE_ERROR      1 */
-/* #define ANX7625_NEGOTIATE_ENDS_SETUP 1 */
+#define ANX7625_NEGOTIATE_ERROR       1 /* If defined when negotiation fails blink red led repeatedly to warn the user and doesn't boot into kernel */
+#define ANX7625_NEGOTIATE_ENDS_SETUP  1 /* If defined exits immediately after power negotiation is finished */
 
 static uint8_t last_chip_addr;
 
@@ -366,6 +366,7 @@ static int anx7625_msg_send(struct udevice *dev, enum anx7625_pd_msg_type msg_ty
 	return 0;
 }
 
+/* Remember to clear the ALERT register. Set 0xCC bit5 as 1 to receive the next message */
 static int anx7625_msg_recv(struct udevice *dev, enum anx7625_pd_msg_type *msg_type,
 			    uint8_t *msg_buf, uint8_t *msg_size, uint8_t retries)
 {
@@ -418,6 +419,20 @@ static int anx7625_msg_recv(struct udevice *dev, enum anx7625_pd_msg_type *msg_t
 	return -ETIMEDOUT;
 }
 
+/* @TODO: @MS please consider below what I know from PD
+ * DFP only mode: we always start as UFP(Rd), the other device is always DFP(Rp)
+ * DRP mode: after connection we switch between Rp(DFP) and Rd(UFP) until we detect a valid connection. When
+ * connection is detected, start either in UFP or DFP mode.
+ * The DFP sends SOURCE_CAPS in loop immediately after connection and waits for ack.
+ * In case DFP becames SINK (or SINK becames DFP like in our case) then SINK needs to send SNK_CAPS that need
+ * to be accepted by other device. This is because current sink may be different between DFP and UFP modes.
+ * In DFP only mode we can switch data role (became DFP) after POWER_RDY message. The Rp/Rd connection
+ * remains fixed, only data role is changed.
+ * We currently setup anx to work in DFP only mode (it has no limitations for the features we want to implement)
+ * so below messages are likely to be ignored by hub or psu.
+ * Identity should be provided under request from discover identity message. DFP sends discovery identity message.
+ * Android driver is implementing anx in DRP mode.
+ */
 static int anx7625_setup_pd_cap(struct udevice *dev)
 {
 	int ret;
@@ -561,6 +576,7 @@ static int anx7625_disable_safe_5v_during_auto_rdo(struct udevice *dev)
 	return dm_i2c_writeb(dev, AUTO_PD_MODE, valb & ~GOTO_SAFE5V_EN);
 }
 
+/* We should set role control (hw) before sending anything on CC bus */
 static int anx7625_setup_role_control(struct udevice *dev)
 {
 	int ret = 0;
@@ -584,7 +600,7 @@ static int anx7625_chip_register_init(struct udevice *dev_p0, struct udevice *de
 
 	i2c_access_workaround(dev_p0);
 
-	/* interrupt vector mask bit as platform needed 0: enable 1: disable */
+	/* Clearing whole interrupt vector mask */
 	ret = dm_i2c_writeb(dev_p0, INTERFACE_CHANGE_INT_MASK, INT_MASK_OFF);
 	if (ret) {
 		printf("%s %d dm_i2c_write failed, err %d\n", __func__, __LINE__, ret);
@@ -593,7 +609,7 @@ static int anx7625_chip_register_init(struct udevice *dev_p0, struct udevice *de
 
 	anx7625_disable_auto_rdo(dev_p0);
 
-	anx7625_disable_safe_5v_during_auto_rdo(dev_p0);
+	//anx7625_disable_safe_5v_during_auto_rdo(dev_p0); /* @TODO: @MS not needed, safe 5V is 5V@500mA, we don't need to disable this choice just elaborate obtained power later on */
 
 	ret = dm_i2c_writeb(dev_p0, MAX_VOLTAGE_SETTING_REG, MAX_VOLTAGE_VALUE);
 	if (ret) {
@@ -620,19 +636,18 @@ static int anx7625_chip_register_init(struct udevice *dev_p0, struct udevice *de
 		return -EIO;
 	}
 
-#ifdef ANX7625_NEGOTIATE_PD
+	/* Try sink or source @TODO: need to read default policy from dts */
 	ret = dm_i2c_writeb(dev_p0, AUTO_PD_MODE, (valb | TRYSNK_EN) & ~TRYSRC_EN);
-#else
-	ret = dm_i2c_writeb(dev_p0, AUTO_PD_MODE, (valb | TRYSRC_EN) & ~TRYSNK_EN);
-#endif
+	//ret = dm_i2c_writeb(dev_p0, AUTO_PD_MODE, (valb | TRYSRC_EN) & ~TRYSNK_EN);
 	if (ret) {
 		printf("%s %d dm_i2c_write failed, err %d\n", __func__, __LINE__, ret);
 		return -EIO;
 	}
 
+	/* HW setup (DFP/DRP) needs to be done before sending any pd message */
 	anx7625_setup_role_control(dev_typec);
 
-	anx7625_enable_auto_rdo(dev_p0);
+	anx7625_enable_auto_rdo(dev_p0); /* This should triggers OCM to handle negotiation with configured values */
 
 	return 0;
 }
@@ -645,7 +660,6 @@ static int anx7625_setup(struct udevice *dev_typec, struct udevice *dev_p0)
 	debug("%s\n", __func__);
 	for (retry_count = 0; retry_count < 5; retry_count++) {
 		anx7625_power_on();
-		udelay(10000); /* 10ms */
 
 		if (anx7625_config(dev_p0)) {
 			return -EIO;
@@ -655,17 +669,19 @@ static int anx7625_setup(struct udevice *dev_typec, struct udevice *dev_p0)
 			if (anx7625_ocm_loading_check(dev_p0) == 0) {
 				printf("%s: OCM started\n", __func__);
 
-				ret = anx7625_setup_pd_cap(dev_p0);
-	                        if (ret) {
-					printf("%s: pd cap init registers failed!\n", __func__);
-					return -EIO;
-				}
-
 				ret = anx7625_chip_register_init(dev_p0, dev_typec);
 	                        if (ret)
 					printf("%s: chip init registers failed!\n", __func__);
 				else
 					printf("%s: chip init registers succeeded.\n", __func__);
+
+				/*  @TODO: @MS Cannot see messages below with analyzer, seems not working */
+				/* Any message need to be sent after hw register configuration (anx7625_chip_register_init) */
+				/*ret = anx7625_setup_pd_cap(dev_p0);
+				if (ret) {
+					printf("%s: setup pd cap failed!\n", __func__);
+					return -EIO;
+				}*/
 
 				dm_i2c_read(dev_p0, OCM_FW_VERSION, &ver, 1);
 				dm_i2c_read(dev_p0, OCM_FW_REVERSION, &rver, 1);
@@ -717,7 +733,7 @@ static int anx7625_negotiate_pd(struct udevice *dev_typec, struct udevice *dev_p
 	unsigned int count = 0;
 	enum anx7625_pd_msg_type msg_type;
 	uint8_t msg_buffer[32];
-	uint8_t typec_isr_1, p0_isr, last_cc1 = 0, last_cc2 = 0, valb = 0;
+	uint8_t p0_isr, last_cc1 = 0, last_cc2 = 0, valb = 0;
 
 	printf("Request:\n");
         ret = dm_i2c_read(dev_p0, MAX_VOLTAGE_SETTING_REG, &valb, 1);
@@ -743,157 +759,127 @@ static int anx7625_negotiate_pd(struct udevice *dev_typec, struct udevice *dev_p
 	printf("  Power Max 5V @ %d [mA]\n", RDO_POWER_UNIT_TO_MA(valb));
 
 	printf("Begin Negotiation:\n");
-	while (count < POWER_DELIVERY_TIMEOUT_MS) {
+	while (count < POWER_DELIVERY_TIMEOUT_MS) { /* Begin negotiation loop */
 		count++;
 		if (count % 1000 == 0) debug("%s: count:%u\n", __func__, count / 1000);
-		/* reset isr variables */
-		typec_isr_1 = 0x0;
-		p0_isr = 0x0;
 
-		/*  Alert 1 Interrupt */
-		ret = dm_i2c_read(dev_typec, TCPC_INTR_ALERT_1, &typec_isr_1, 1);
+		/*  Interface and Status INT */
+		ret = dm_i2c_read(dev_p0, INTERFACE_CHANGE_INT, &p0_isr, 1);
 		if (ret) {
-			printf("%s %d dm_i2c_read TCPC_INTR_ALERT_1 failed, err %d\n", __func__, __LINE__, ret);
+			printf("%s %d dm_i2c_read INTERFACE_CHANGE_INT failed, err %d\n", __func__, __LINE__, ret);
 			return -EIO;
 		}
 
-		if (typec_isr_1 & INTR_RECEIVED_MSG) {
+#ifdef ANX7625_VERBOSE
+		debug("Interface and Status INT: 0x%02x\n", p0_isr);
+#endif
+
+		/*  Interface Status */
+		ret = dm_i2c_read(dev_p0, INTERFACE_STATUS, &valb, 1);
+		if (ret) {
+			printf("%s %d dm_i2c_read INTERFACE_STATUS failed, err %d\n", __func__, __LINE__, ret);
+			return -EIO;
+		}
+
+#ifdef ANX7625_VERBOSE
+		debug("  Interface Status: 0x%02x\n", valb);
+#endif
+
+		/* Begin Parse Interface and Status INT */
+		if (p0_isr & RECVD_MSG_INT) {
 			ret = anx7625_msg_recv(dev_p0, &msg_type, msg_buffer, &valb, INTERFACE_PD_MSG_RETRIES);
-			if (ret & (p0_isr & RECVD_MSG_INT)) {
+			if (ret) {
 				printf("%s anx7625_msg_recv failed, err %d\n", __func__, ret);
 			}
+			p0_isr &= ~RECVD_MSG_INT;
+			dm_i2c_writeb(dev_p0, INTERFACE_CHANGE_INT, p0_isr);
 		}
 
-#ifdef ANX7625_VERBOSE
-		if (typec_isr_1 != 0x0) debug("TCPC INTR ALERT 1: 0x%02x\n", typec_isr_1);
-#endif
+		if (p0_isr & VCONN_CHG_INT) {
+			debug("  INT: VCONN CHANGE\n");
+			p0_isr &= ~VCONN_CHG_INT;
+			dm_i2c_writeb(dev_p0, INTERFACE_CHANGE_INT, p0_isr);
+		}
 
-		p0_isr = 0xff;
-		while (p0_isr != 0x0) {
-			/*  Interface and Status Interrupt */
-			ret = dm_i2c_read(dev_p0, INTERFACE_CHANGE_INT, &p0_isr, 1);
+		if (p0_isr & VBUS_CHG_INT) {
+			debug("  INT: VBUS CHANGE\n");
+			p0_isr &= ~VBUS_CHG_INT;
+			dm_i2c_writeb(dev_p0, INTERFACE_CHANGE_INT, p0_isr);
+		}
+
+		if (p0_isr & CC_STATUS_CHG_INT) {
+			ret = dm_i2c_read(dev_p0, CC_STATUS, &valb, 1);
 			if (ret) {
-				printf("%s %d dm_i2c_read INTERFACE_CHANGE_INT failed, err %d\n", __func__, __LINE__, ret);
+				printf("%s %d dm_i2c_read failed, CC_STATUS err %d\n", __func__, __LINE__, ret);
 				return -EIO;
 			}
 
-			if (p0_isr == 0x0) {
-				continue;
+			if ((last_cc1 != (valb & 0xf)) || (last_cc2 != (valb >> 4))) {
+				last_cc1 = valb & 0xf;
+				last_cc2 = valb >> 4;
+				debug("  INT: CC STATUS CHANGE\n");
+				anx7625_print_cc_status("  CC1", last_cc1);
+				anx7625_print_cc_status("  CC2", last_cc2);
 			}
 
-#ifdef ANX7625_VERBOSE
-			debug("Interface and Status INT: 0x%02x\n", p0_isr);
-#endif
+			p0_isr &= ~CC_STATUS_CHG_INT;
+			dm_i2c_writeb(dev_p0, INTERFACE_CHANGE_INT, p0_isr);
+		}
 
-			/*  Interface Status */
-			ret = dm_i2c_read(dev_p0, INTERFACE_STATUS, &valb, 1);
-			if (ret) {
-				printf("%s %d dm_i2c_read INTERFACE_STATUS failed, err %d\n", __func__, __LINE__, ret);
+		if (p0_isr & DATA_ROLE_CHG_INT) {
+			debug("  INT: DATA ROLE CHANGE\n");
+			p0_isr &= ~DATA_ROLE_CHG_INT;
+			dm_i2c_writeb(dev_p0, INTERFACE_CHANGE_INT, p0_isr);
+		}
+
+		if (p0_isr & PR_C_GOT_POWER) {
+			debug("  INT: POWER NEGOTIATION FINISHED\n");
+			ret = dm_i2c_read(dev_p0, MAX_RDO_VOLTAGE_SETTING, &valb, 1);
+			if(ret) {
+				printf("%s %d dm_i2c_read failed, err %d\n", __func__, __LINE__, ret);
 				return -EIO;
 			}
-#ifdef ANX7625_VERBOSE
-			if (valb != 0x0) {
-				debug("  Interface Status: 0x%02x\n", valb);
+			debug("  Voltage: %d [V]\n", RDO_VOLTAGE_UNIT_TO_V(valb));
+
+			ret = dm_i2c_read(dev_p0, MAX_RDO_POWER_SETTING, &valb, 1);
+			if(ret) {
+				printf("%s %d dm_i2c_read failed, err %d\n", __func__, __LINE__, ret);
+				return -EIO;
 			}
-#endif
-
-			if (p0_isr & RECVD_MSG_INT) {
-				ret = anx7625_msg_recv(dev_p0, &msg_type, msg_buffer, &valb, INTERFACE_PD_MSG_RETRIES);
-				if (ret) {
-					printf("%s anx7625_msg_recv failed, err %d\n", __func__, ret);
-				}
-				p0_isr &= ~RECVD_MSG_INT;
-				dm_i2c_writeb(dev_p0, INTERFACE_CHANGE_INT, p0_isr);
-			}
-
-			if (p0_isr & VCONN_CHG_INT) {
-				debug("  INT: VCONN CHANGE\n");
-				p0_isr &= ~VCONN_CHG_INT;
-				dm_i2c_writeb(dev_p0, INTERFACE_CHANGE_INT, p0_isr);
-			}
-
-			if (p0_isr & VBUS_CHG_INT) {
-				debug("  INT: VBUS CHANGE\n");
-				p0_isr &= ~VBUS_CHG_INT;
-				dm_i2c_writeb(dev_p0, INTERFACE_CHANGE_INT, p0_isr);
-			}
-
-			if (p0_isr & CC_STATUS_CHG_INT) {
-				ret = dm_i2c_read(dev_p0, CC_STATUS, &valb, 1);
-				if (ret) {
-					printf("%s %d dm_i2c_read failed, CC_STATUS err %d\n", __func__, __LINE__, ret);
-					return -EIO;
-				}
-
-				if ((last_cc1 != (valb & 0xf)) || (last_cc2 != (valb >> 4))) {
-					last_cc1 = valb & 0xf;
-					last_cc2 = valb >> 4;
-					debug("  INT: CC STATUS CHANGE\n");
-					anx7625_print_cc_status("  CC1", last_cc1);
-					anx7625_print_cc_status("  CC2", last_cc2);
-				}
-
-				p0_isr &= ~CC_STATUS_CHG_INT;
-				dm_i2c_writeb(dev_p0, INTERFACE_CHANGE_INT, p0_isr);
-			}
-
-			if (p0_isr & DATA_ROLE_CHG_INT) {
-				debug("  INT: DATA ROLE CHANGE\n");
-					p0_isr &= ~DATA_ROLE_CHG_INT;
-					dm_i2c_writeb(dev_p0, INTERFACE_CHANGE_INT, p0_isr);
-			}
-
-			if (p0_isr & PR_C_GOT_POWER) {
-				debug("  INT: POWER NEGOTIATION FINISHED\n");
-				ret = dm_i2c_read(dev_p0, MAX_RDO_VOLTAGE_SETTING, &valb, 1);
-				if(ret) {
-					printf("%s %d dm_i2c_read failed, err %d\n", __func__, __LINE__, ret);
-					return -EIO;
-				}
-				debug("  Voltage: %d [V]\n", RDO_VOLTAGE_UNIT_TO_V(valb));
-
-				ret = dm_i2c_read(dev_p0, MAX_RDO_POWER_SETTING, &valb, 1);
-				if(ret) {
-					printf("%s %d dm_i2c_read failed, err %d\n", __func__, __LINE__, ret);
-					return -EIO;
-				}
-				debug("  Power: 5V @ %d [mA]\n", (valb * 500) / 5);
+			debug("  Power: 5V @ %d [mA]\n", (valb * 500) / 5);
 
 #ifdef ANX7625_NEGOTIATE_ERROR
-				if (valb < MIN_POWER_VALUE) {
-					printf("Power negotiation failure (5V @ %d [mA] below min setting 5V @ %d [mA])\n",
-					       RDO_POWER_UNIT_TO_MA(valb), MIN_POWER_VALUE_MA);;
-					printf("Please change adapter and retry.\n");
+			if (valb < MIN_POWER_VALUE) {
+				printf("Power negotiation failure (5V @ %d [mA] below min setting 5V @ %d [mA])\n",
+					   RDO_POWER_UNIT_TO_MA(valb), MIN_POWER_VALUE_MA);;
+				printf("Please change adapter and retry.\n");
 
-					while (1) {
-						led_red_on();
-						udelay(200000);
-						led_red_off();
-						udelay(800000);
-					}
+				while (1) {
+					led_red_on();
+					udelay(200000);
+					led_red_off();
+					udelay(800000);
 				}
+			}
 #endif
-				/* TODO: should we shorten the rest of the wait time? */
-				printf("Power negotiation COMPLETE\n");
-				p0_isr &= ~PR_C_GOT_POWER;
-				dm_i2c_writeb(dev_p0, INTERFACE_CHANGE_INT, p0_isr);
+			printf("Power negotiation COMPLETE\n");
+			p0_isr &= ~PR_C_GOT_POWER;
+			dm_i2c_writeb(dev_p0, INTERFACE_CHANGE_INT, p0_isr);
 #ifdef ANX7625_NEGOTIATE_ENDS_SETUP
-				break;
+			break;
 #endif
-			}
-
-			if (p0_isr & DP_HPD_CHANGE) {
-				debug("  INT: DP HDP CHANGE\n");
-				p0_isr &= ~DP_HPD_CHANGE;
-				dm_i2c_writeb(dev_p0, INTERFACE_CHANGE_INT, p0_isr);
-			}
 		}
 
-		dm_i2c_writeb(dev_typec, TCPC_INTR_ALERT_1, 0xff);
-		udelay(1000); /* 1ms */
-	}
+		if (p0_isr & DP_HPD_CHANGE) {
+			debug("  INT: DP HDP CHANGE\n");
+			p0_isr &= ~DP_HPD_CHANGE;
+			dm_i2c_writeb(dev_p0, INTERFACE_CHANGE_INT, p0_isr);
+		}
+		/* End Parse Interface and Status INT */
 
-	/* TODO: we've failed to auto negotiate PD at this point, need to do something here? */
+		dm_i2c_writeb(dev_typec, TCPC_INTR_ALERT_1, 0xff); /* Among other things clears the ALERT register. Set 0xCC bit5 as 1 to receive the next message */
+		udelay(1000); /* 1ms */
+	} /* End negotiation loop */
 
 	return 0;
 }
