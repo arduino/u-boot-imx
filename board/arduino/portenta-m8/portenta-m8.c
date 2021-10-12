@@ -160,28 +160,10 @@ int board_early_init_f(void)
 }
 
 #if IS_ENABLED(CONFIG_FEC_MXC)
-#define FEC_RST_PAD       IMX_GPIO_NR(3, 6)
-
-static void setup_iomux_fec(void)
-{
-	printf("setup_iomux_fec\n");
-
-	/* reset PHY and ensure RX_DV/CLK125_EN is pulled high to enable TX_REF_CLK */
-	//imx_iomux_v3_setup_multiple_pads(fec1_rst_pads, ARRAY_SIZE(fec1_rst_pads));
-	gpio_request(FEC_RST_PAD, "fec1_rst");
-	gpio_direction_output(FEC_RST_PAD, 0);
-	udelay(500);
-	gpio_direction_output(FEC_RST_PAD, 1);
-	udelay(100000);
-	gpio_free(FEC_RST_PAD);
-}
-
 static int setup_fec(void)
 {
 	struct iomuxc_gpr_base_regs *gpr =
 		(struct iomuxc_gpr_base_regs *)IOMUXC_GPR_BASE_ADDR;
-
-	setup_iomux_fec();
 
 	/* Use 125M anatop REF_CLK1 for ENET1, not from external */
 	clrsetbits_le32(&gpr->gpr[1], IOMUXC_GPR_GPR1_GPR_ENET1_TX_CLK_SEL_MASK, 0);
@@ -190,6 +172,10 @@ static int setup_fec(void)
 
 int board_phy_config(struct phy_device *phydev)
 {
+	if (phydev->drv->config)
+		phydev->drv->config(phydev);
+
+#ifndef CONFIG_DM_ETH
 	/* enable rgmii rxc skew and phy mode select to RGMII copper */
 	phy_write(phydev, MDIO_DEVAD_NONE, 0x1d, 0x1f);
 	phy_write(phydev, MDIO_DEVAD_NONE, 0x1e, 0x8);
@@ -198,12 +184,8 @@ int board_phy_config(struct phy_device *phydev)
 	phy_write(phydev, MDIO_DEVAD_NONE, 0x1e, 0x82ee);
 	phy_write(phydev, MDIO_DEVAD_NONE, 0x1d, 0x05);
 	phy_write(phydev, MDIO_DEVAD_NONE, 0x1e, 0x100);
+#endif
 
-	printf("board_phy_config PHYADDR %d\n", CONFIG_FEC_MXC_PHYADDR);
-	phydev->drv->writeext(phydev, CONFIG_FEC_MXC_PHYADDR, 2, 8, 0x294);
-
-	if (phydev->drv->config)
-		phydev->drv->config(phydev);
 	return 0;
 }
 #endif
