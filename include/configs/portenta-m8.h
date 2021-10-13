@@ -151,6 +151,8 @@
 	"fdt_addr=0x43000000\0"			\
 	"fdt_high=0xffffffffffffffff\0"		\
 	"boot_fit=no\0" \
+	"dfu_alt_info=mmc 2=imx-boot raw 0x42 0x250 mmcpart 1;" \
+		"u-boot-itb raw 0x300 0xD00 mmcpart 1\0" \
 	"fdtfile=" CONFIG_DEFAULT_FDT_FILE "\0" \
 	"fdt_file=" CONFIG_DEFAULT_FDT_FILE "\0" \
 	"bootm_size=0x10000000\0" \
