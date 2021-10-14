@@ -205,6 +205,7 @@ config TARGET_PHYCORE_IMX8MP
 endchoice
 
 source "board/arduino/portenta-m8/Kconfig"
+source "board/arduino/portenta-x8/Kconfig"
 source "board/freescale/imx8mq_evk/Kconfig"
 source "board/freescale/imx8mq_val/Kconfig"
 source "board/freescale/imx8mm_evk/Kconfig"
