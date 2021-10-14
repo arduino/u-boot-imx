@@ -87,6 +87,7 @@
 
 &usdhc3 {
 	u-boot,dm-spl;
+	mmc-hs400-1_8v;
 	mmc-hs400-enhanced-strobe;
 	assigned-clocks = <&clk IMX8MM_CLK_USDHC3>;
 	assigned-clock-rates = <400000000>;
