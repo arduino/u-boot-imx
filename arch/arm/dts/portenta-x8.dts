@@ -86,8 +86,8 @@
 		compatible = "rohm,bd71847";
 		reg = <0x4b>;
 		pinctrl-0 = <&pinctrl_pmic>;
-		interrupt-parent = <&gpio1>;
-		interrupts = <3 GPIO_ACTIVE_LOW>;
+		interrupt-parent = <&gpio3>;
+		interrupts = <8 GPIO_ACTIVE_LOW>;
 		rohm,reset-snvs-powered;
 
 		regulators {
@@ -315,7 +315,7 @@
 
 	pinctrl_pmic: pmicirq {
 		fsl,pins = <
-			MX8MM_IOMUXC_GPIO1_IO03_GPIO1_IO3		0x41
+			MX8MM_IOMUXC_NAND_DATA02_GPIO3_IO8		0x141
 		>;
 	};
 
