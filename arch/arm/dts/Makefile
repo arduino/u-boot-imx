@@ -802,7 +802,8 @@ dtb-$(CONFIG_ARCH_IMX8M) += \
 	imx8mm-ab2.dtb \
 	imx8mn-ddr4-ab2.dtb \
 	imx8mn-ab2.dtb \
-	portenta-m8.dtb
+	portenta-m8.dtb \
+	portenta-x8.dtb
 
 dtb-$(CONFIG_ARCH_IMXRT) += imxrt1050-evk.dtb
 
