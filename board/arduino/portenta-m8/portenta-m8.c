@@ -24,7 +24,7 @@
 #include <imx_sip.h>
 #include <linux/arm-smccc.h>
 
-#include "anx7625.h"
+#include "../common/anx7625.h"
 
 /**
  * External USB Hub configuration
