@@ -130,12 +130,21 @@ enum anx7625_pd_msg_type {
 #define POWER_DELIVERY_TIMEOUT_MS 5000
 #define OCM_LOADING_TIME          10
 
+#if defined(CONFIG_TARGET_PORTENTA_M8)
 #define ANX7625_POWER_EN_PAD      IMX_GPIO_NR(4, 21)
 #define ANX7625_RESET_N_PAD       IMX_GPIO_NR(4, 27)
-
 #define LEDR_PAD                  IMX_GPIO_NR(5, 2)
 #define LEDG_PAD                  IMX_GPIO_NR(4, 28)
 #define LEDB_PAD                  IMX_GPIO_NR(4, 29)
+#elif defined(CONFIG_TARGET_PORTENTA_X8)
+#define ANX7625_POWER_EN_PAD      IMX_GPIO_NR(1, 9)
+#define ANX7625_RESET_N_PAD       IMX_GPIO_NR(1, 13)
+#define LEDR_PAD                  IMX_GPIO_NR(5, 2)
+#define LEDG_PAD                  IMX_GPIO_NR(4, 28)
+#define LEDB_PAD                  IMX_GPIO_NR(5, 1)
+#else
+#error ANX/LED GPIOs not configured for this board
+#endif
 
 #define ANX7625_DUMP_MSG              1
 /* #define ANX7625_VERBOSE              1 */
