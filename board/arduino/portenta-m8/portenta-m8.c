@@ -396,7 +396,7 @@ int board_init(void)
 	/* ANX7625 usb typec controller and power delivery configuration on portenta-m8 */
 	/* @TODO: selectable with CONFIG_USB_TCPC? */
 #ifndef CONFIG_SPL_BUILD
-	anx7625_probe();
+	anx7625_probe(0);
 #endif
 
 	arm_smccc_smc(IMX_SIP_GPC, IMX_SIP_GPC_PM_DOMAIN,

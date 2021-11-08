@@ -17,7 +17,6 @@
 #define ANX7625_DRV_VERSION       "0.1.04-uboot"
 
 /* @TODO: obtain gpios from dts */
-#define I2C_BUS_0                 0
 #define I2C_ADDR_ANX_58           0x2c /* 0x58 */
 #define I2C_ADDR_ANX_7E           0x3f /* 0x7e */
 
@@ -885,7 +884,7 @@ static int anx7625_negotiate_pd(struct udevice *dev_typec, struct udevice *dev_p
 }
 #endif
 
-int anx7625_probe(void)
+int anx7625_probe(uint8_t i2c_bus_num)
 {
 	struct udevice *bus_i2c1;
 	struct udevice *dev_typec;
@@ -896,7 +895,7 @@ int anx7625_probe(void)
 	request_gpios();
 	leds_off();
 
-	if (uclass_get_device_by_seq(UCLASS_I2C, I2C_BUS_0, &bus_i2c1)) {
+	if (uclass_get_device_by_seq(UCLASS_I2C, i2c_bus_num, &bus_i2c1)) {
 		printf("%s: Can't find bus\n", __func__);
 		return -EINVAL;
 	}
