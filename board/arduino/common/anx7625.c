@@ -16,6 +16,8 @@
 
 #define ANX7625_DRV_VERSION       "0.1.04-uboot"
 
+#define USE_PD_2_0_ONLY
+
 /* @TODO: obtain gpios from dts */
 #define I2C_ADDR_ANX_58           0x2c /* 0x58 */
 #define I2C_ADDR_ANX_7E           0x3f /* 0x7e */
@@ -192,13 +194,27 @@ static void led_red_off(void)
 }
 #endif
 
-static void anx7625_power_on(void)
+static int anx7625_power_on(struct udevice *dev)
 {
+	int ret = 0;
+
 	debug("%s\n", __func__);
 	gpio_direction_output(ANX7625_POWER_EN_PAD, 1);
 	udelay(10000); /* 10ms */
 	gpio_direction_output(ANX7625_RESET_N_PAD, 1);
+#ifndef USE_PD_2_0_ONLY
 	udelay(10000); /* 10ms */
+#else
+	udelay(1000); /* 1ms */
+	ret = dm_i2c_writeb(dev, 0xDF, 0x01); // Set PD2.0 version
+	ret |= dm_i2c_writeb(dev, 0x2F, 0x02); // Force OCM to check version specified in previous reg
+	if (ret) {
+		printf("%s %d dm_i2c_write failed, err %d\n", __func__, __LINE__, ret);
+		return -EIO;
+	}
+	udelay(9000); /* 1ms */
+#endif
+	return ret;
 }
 
 static void anx7625_standby(void)
@@ -658,7 +674,9 @@ static int anx7625_setup(struct udevice *dev_typec, struct udevice *dev_p0)
 
 	debug("%s\n", __func__);
 	for (retry_count = 0; retry_count < 5; retry_count++) {
-		anx7625_power_on();
+		if(anx7625_power_on(dev_p0)) {
+			return -EIO;
+		}
 
 		if (anx7625_config(dev_p0)) {
 			return -EIO;
