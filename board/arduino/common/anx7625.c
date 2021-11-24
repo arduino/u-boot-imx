@@ -128,7 +128,7 @@ enum anx7625_pd_msg_type {
 #define PDO_FIXED(mv, ma, flags) (PDO_FIXED_VOLT(mv) | PDO_FIXED_CURR(ma) | (flags))
 
 /* 5 seconds */
-#define POWER_DELIVERY_TIMEOUT_MS 5000
+#define POWER_DELIVERY_TIMEOUT_MS 300
 #define OCM_LOADING_TIME          10
 
 #if defined(CONFIG_TARGET_PORTENTA_M8)
@@ -743,7 +743,14 @@ static void anx7625_print_cc_status(const char *cc, uint8_t cc_status) {
 	}
 }
 
-/* @TODO: currently we wait 1s for the power delivery to finish */
+/* This function waits until PR_C_GOT_POWER is asserted or timeouts. This bit
+ * is set when anx7625 receive PS_RDY from the hub.
+ * In USB_PD_R2_0 V1.3 - 20170112.pdf p. 280 we find the parameter
+ * tSrcReady_max = 285ms. We rounded up to 300ms.
+ * This time shall be used as timeout value for this function. If no power delivery
+ * negotiation happened in this time span, then the device is considered no power delivery
+ * capable.
+ * */
 static int anx7625_negotiate_pd(struct udevice *dev_typec, struct udevice *dev_p0)
 {
 	int ret, min_power_setting_ma;
@@ -778,7 +785,7 @@ static int anx7625_negotiate_pd(struct udevice *dev_typec, struct udevice *dev_p
 	printf("Begin Negotiation:\n");
 	while (count < POWER_DELIVERY_TIMEOUT_MS) { /* Begin negotiation loop */
 		count++;
-		if (count % 1000 == 0) debug("%s: count:%u\n", __func__, count / 1000);
+		if (count % 100 == 0) debug("%s: count:%u\n", __func__, count / 1000);
 
 		/*  Interface and Status INT */
 		ret = dm_i2c_read(dev_p0, INTERFACE_CHANGE_INT, &p0_isr, 1);
