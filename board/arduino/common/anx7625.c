@@ -760,26 +760,26 @@ static int anx7625_negotiate_pd(struct udevice *dev_typec, struct udevice *dev_p
 	uint8_t p0_isr, last_cc1 = 0, last_cc2 = 0, valb = 0;
 
 	printf("Request:\n");
-        ret = dm_i2c_read(dev_p0, MAX_VOLTAGE_SETTING_REG, &valb, 1);
-        if (ret) {
-                printf("%s dm_i2c_read MAX_VOLTAGE_SETTING_REG failed, err %d\n", __func__, ret);
-                return -EIO;
-        }
+	ret = dm_i2c_read(dev_p0, MAX_VOLTAGE_SETTING_REG, &valb, 1);
+	if (ret) {
+			printf("%s dm_i2c_read MAX_VOLTAGE_SETTING_REG failed, err %d\n", __func__, ret);
+			return -EIO;
+	}
 	printf("  Voltage Max %d [V]\n", RDO_VOLTAGE_UNIT_TO_V(valb));
 
-        ret = dm_i2c_read(dev_p0, MIN_POWER_SETTING_REG, &valb, 1);
-        if (ret) {
-                printf("%s dm_i2c_read MIN_POWER_SETTING_REG failed, err %d\n", __func__, ret);
-                return -EIO;
-        }
+	ret = dm_i2c_read(dev_p0, MIN_POWER_SETTING_REG, &valb, 1);
+	if (ret) {
+			printf("%s dm_i2c_read MIN_POWER_SETTING_REG failed, err %d\n", __func__, ret);
+			return -EIO;
+	}
 	min_power_setting_ma = RDO_POWER_UNIT_TO_MA(valb);
 	printf("  Power Min 5V @ %d [mA]\n", min_power_setting_ma);
 
-        ret = dm_i2c_read(dev_p0, MAX_POWER_SETTING_REG, &valb, 1);
-        if (ret) {
-                printf("%s dm_i2c_read MAX_POWER_SETTING_REG failed, err %d\n", __func__, ret);
-                return -EIO;
-        }
+	ret = dm_i2c_read(dev_p0, MAX_POWER_SETTING_REG, &valb, 1);
+	if (ret) {
+			printf("%s dm_i2c_read MAX_POWER_SETTING_REG failed, err %d\n", __func__, ret);
+			return -EIO;
+	}
 	printf("  Power Max 5V @ %d [mA]\n", RDO_POWER_UNIT_TO_MA(valb));
 
 	printf("Begin Negotiation:\n");
