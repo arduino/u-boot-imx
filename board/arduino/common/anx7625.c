@@ -127,8 +127,7 @@ enum anx7625_pd_msg_type {
 /* Build a fixed PDO packet */
 #define PDO_FIXED(mv, ma, flags) (PDO_FIXED_VOLT(mv) | PDO_FIXED_CURR(ma) | (flags))
 
-/* 5 seconds */
-#define POWER_DELIVERY_TIMEOUT_MS 300
+#define POWER_DELIVERY_TIMEOUT_MS 300 // [ms]
 #define OCM_LOADING_TIME          10
 
 #if defined(CONFIG_TARGET_PORTENTA_M8)
@@ -194,38 +193,6 @@ static void led_red_off(void)
 }
 #endif
 
-static int anx7625_power_on(struct udevice *dev)
-{
-	int ret = 0;
-
-	debug("%s\n", __func__);
-	gpio_direction_output(ANX7625_POWER_EN_PAD, 1);
-	udelay(10000); /* 10ms */
-	gpio_direction_output(ANX7625_RESET_N_PAD, 1);
-#ifndef USE_PD_2_0_ONLY
-	udelay(10000); /* 10ms */
-#else
-	udelay(1000); /* 1ms */
-	ret = dm_i2c_writeb(dev, 0xDF, 0x01); // Set PD2.0 version
-	ret |= dm_i2c_writeb(dev, 0x2F, 0x02); // Force OCM to check version specified in previous reg
-	if (ret) {
-		printf("%s %d dm_i2c_write failed, err %d\n", __func__, __LINE__, ret);
-		return -EIO;
-	}
-	udelay(9000); /* 1ms */
-#endif
-	return ret;
-}
-
-static void anx7625_standby(void)
-{
-	debug("%s\n", __func__);
-	gpio_direction_output(ANX7625_RESET_N_PAD, 0);
-	udelay(10000); /* 10ms */
-	gpio_direction_output(ANX7625_POWER_EN_PAD, 0);
-	udelay(10000); /* 10ms */
-}
-
 /*
  * There is a sync issue while access I2C register between AP(CPU) and
  * internal firmware(OCM), to avoid the race condition, AP should access
@@ -263,6 +230,38 @@ static int dm_i2c_writeb(struct udevice *dev, uint offset, const uint8_t buffer)
 
 	i2c_access_workaround(dev);
 	return dm_i2c_write(dev, offset, &valb, 1);
+}
+
+static int anx7625_power_on(struct udevice *dev)
+{
+	int ret = 0;
+
+	debug("%s\n", __func__);
+	gpio_direction_output(ANX7625_POWER_EN_PAD, 1);
+	udelay(10000); /* 10ms */
+	gpio_direction_output(ANX7625_RESET_N_PAD, 1);
+#ifndef USE_PD_2_0_ONLY
+	udelay(10000); /* 10ms */
+#else
+	udelay(1000); /* 1ms */
+	ret = dm_i2c_writeb(dev, 0xDF, 0x01); // Set PD2.0 version
+	ret |= dm_i2c_writeb(dev, 0x2F, 0x02); // Force OCM to check version specified in previous reg
+	if (ret) {
+		printf("%s %d dm_i2c_write failed, err %d\n", __func__, __LINE__, ret);
+		return -EIO;
+	}
+	udelay(9000); /* 1ms */
+#endif
+	return ret;
+}
+
+static void anx7625_standby(void)
+{
+	debug("%s\n", __func__);
+	gpio_direction_output(ANX7625_RESET_N_PAD, 0);
+	udelay(10000); /* 10ms */
+	gpio_direction_output(ANX7625_POWER_EN_PAD, 0);
+	udelay(10000); /* 10ms */
 }
 
 static uint8_t anx7625_msg_calc_checksum(uint8_t *msg_buf, uint8_t msg_size)
@@ -785,7 +784,7 @@ static int anx7625_negotiate_pd(struct udevice *dev_typec, struct udevice *dev_p
 	printf("Begin Negotiation:\n");
 	while (count < POWER_DELIVERY_TIMEOUT_MS) { /* Begin negotiation loop */
 		count++;
-		if (count % 100 == 0) debug("%s: count:%u\n", __func__, count / 1000);
+		if (count % 100 == 0) debug("%s: count:%u\n", __func__, count / 100);
 
 		/*  Interface and Status INT */
 		ret = dm_i2c_read(dev_p0, INTERFACE_CHANGE_INT, &p0_isr, 1);
