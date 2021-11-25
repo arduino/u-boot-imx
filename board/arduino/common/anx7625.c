@@ -127,7 +127,7 @@ enum anx7625_pd_msg_type {
 /* Build a fixed PDO packet */
 #define PDO_FIXED(mv, ma, flags) (PDO_FIXED_VOLT(mv) | PDO_FIXED_CURR(ma) | (flags))
 
-#define POWER_DELIVERY_TIMEOUT_MS 300 // [ms]
+#define POWER_DELIVERY_TIMEOUT    50 // [x10 = 500ms]
 #define OCM_LOADING_TIME          10
 
 #if defined(CONFIG_TARGET_PORTENTA_M8)
@@ -150,7 +150,7 @@ enum anx7625_pd_msg_type {
 /* #define ANX7625_VERBOSE              1 */
 #define ANX7625_NEGOTIATE_PD          1
 #define ANX7625_NEGOTIATE_ERROR       1 /* If defined when negotiation fails blink red led repeatedly to warn the user and doesn't boot into kernel */
-#define ANX7625_NEGOTIATE_ENDS_SETUP  1 /* If defined exits immediately after power negotiation is finished */
+#define ANX7625_NEGOTIATE_ENDS_SETUP  1 /* If defined exits immediately after power negotiation is finished, otherwise waits for the timeout to occours */
 
 static uint8_t last_chip_addr;
 
@@ -782,9 +782,8 @@ static int anx7625_negotiate_pd(struct udevice *dev_typec, struct udevice *dev_p
 	printf("  Power Max 5V @ %d [mA]\n", RDO_POWER_UNIT_TO_MA(valb));
 
 	printf("Begin Negotiation:\n");
-	while (count < POWER_DELIVERY_TIMEOUT_MS) { /* Begin negotiation loop */
-		count++;
-		if (count % 100 == 0) debug("%s: count:%u\n", __func__, count / 100);
+	while (count < POWER_DELIVERY_TIMEOUT) { /* Begin negotiation loop. Every loop lasts 10ms. */
+		if (count % 10 == 0) debug("%s: count:%u\n", __func__, count / 10); /* Print count every 100ms */
 
 		/*  Interface and Status INT */
 		ret = dm_i2c_read(dev_p0, INTERFACE_CHANGE_INT, &p0_isr, 1);
@@ -900,8 +899,9 @@ static int anx7625_negotiate_pd(struct udevice *dev_typec, struct udevice *dev_p
 		}
 		/* End Parse Interface and Status INT */
 
-		dm_i2c_writeb(dev_typec, TCPC_INTR_ALERT_1, 0xff); /* Among other things clears the ALERT register. Set 0xCC bit5 as 1 to receive the next message */
-		udelay(1000); /* 1ms */
+		//dm_i2c_writeb(dev_typec, TCPC_INTR_ALERT_1, 0xff); /* Among other things clears the ALERT register. Set 0xCC bit5 as 1 to receive the next message @TODO: necessary? */
+		udelay(10000); /* 10ms */
+		count++;
 	} /* End negotiation loop */
 
 	return 0;
