@@ -30,7 +30,7 @@
  * External USB Hub configuration
  */
 #define EXT_USB_HUB
-#define EXT_USB_HUB_I2C_BUS  0
+#define EXT_USB_HUB_I2C_BUS  2
 #define EXT_USB_HUB_I2C_ADR  0x2C
 /**
  * USB2514B/M2 configuration data
