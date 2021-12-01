@@ -27,6 +27,61 @@
 #include "../common/anx7625.h"
 
 /**
+ * Board model and carrier selection
+ */
+struct portenta_model {
+	const char *board_name;
+	const char *board_rev;
+	bool has_onboard_wifi;
+	bool has_rtmcu;
+	const char *rtmcu_name;
+	bool is_on_carrier;
+	const char *carrier_name;
+};
+
+static const struct portenta_model portenta_x8_model_carrier_unknown = {
+	"portenta-x8",
+	"iMX8MM",
+	true,
+	true,
+	"STM32H7",
+	false,
+	"unknown",
+};
+
+static const struct portenta_model portenta_x8_model_carrier_breakout = {
+	"portenta-x8",
+	"iMX8MM",
+	true,
+	true,
+	"STM32H7",
+	true,
+	"breakout",
+};
+
+static const struct portenta_model portenta_x8_model_carrier_max = {
+	"portenta-x8",
+	"iMX8MM",
+	true,
+	true,
+	"STM32H7",
+	true,
+	"max",
+};
+
+static const struct portenta_model *model;
+
+static void set_breakout_carrier_model()
+{
+	model = &portenta_x8_model_carrier_breakout;
+}
+
+static void set_max_carrier_model()
+{
+	model = &portenta_x8_model_carrier_max;
+}
+
+/**
  * External USB Hub configuration
  */
 #define EXT_USB_HUB
@@ -74,11 +129,18 @@ void ext_usb_hub_init(void)
 		printf("%s: No bus %d\n", __func__, EXT_USB_HUB_I2C_BUS);
 		return;
 	}
+
+	/* @DOC: we use external usb hub present on Max Carrier to perform
+	 * carrier detection */
 	ret = dm_i2c_probe(bus, EXT_USB_HUB_I2C_ADR, 0, &dev);
 	if (ret) {
 		printf("%s: Can't find device id=0x%x, on bus %d\n",
 			   __func__, EXT_USB_HUB_I2C_ADR, EXT_USB_HUB_I2C_BUS);
+		set_breakout_carrier_model();
 		return;
+	}
+	else {
+		set_max_carrier_model();
 	}
 
 	ret = dm_i2c_write(dev, 0x00, ext_usb_hub_cfg_1, sizeof(ext_usb_hub_cfg_1));
@@ -385,6 +447,8 @@ int board_init(void)
 {
 	struct arm_smccc_res res;
 
+	model = &portenta_x8_model_carrier_unknown;
+
 #if defined(CONFIG_USB_TCPC) && !defined(CONFIG_SPL_BUILD)
 	setup_typec();
 #endif
@@ -418,8 +482,12 @@ int board_late_init(void)
 #endif
 
 #ifdef CONFIG_ENV_VARS_UBOOT_RUNTIME_CONFIG
-	env_set("board_name", "portenta-x8");
-	env_set("board_rev", "iMX8MM");
+	env_set("board_name", model->board_name);
+	env_set("board_rev", model->board_rev);
+	if(model->is_on_carrier) {
+		env_set("is_on_carrier", "yes");
+		env_set("carrier_name", model->carrier_name);
+	}
 #endif
 	return 0;
 }
