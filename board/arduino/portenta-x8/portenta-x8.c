@@ -39,7 +39,7 @@ struct portenta_model {
 	const char *carrier_name;
 };
 
-static const struct portenta_model portenta_x8_model_carrier_unknown = {
+static const struct portenta_model carrier_unknown = {
 	"portenta-x8",
 	"iMX8MM",
 	true,
@@ -49,7 +49,7 @@ static const struct portenta_model portenta_x8_model_carrier_unknown = {
 	"unknown",
 };
 
-static const struct portenta_model portenta_x8_model_carrier_breakout = {
+static const struct portenta_model carrier_breakout = {
 	"portenta-x8",
 	"iMX8MM",
 	true,
@@ -59,7 +59,7 @@ static const struct portenta_model portenta_x8_model_carrier_breakout = {
 	"breakout",
 };
 
-static const struct portenta_model portenta_x8_model_carrier_max = {
+static const struct portenta_model carrier_max = {
 	"portenta-x8",
 	"iMX8MM",
 	true,
@@ -73,12 +73,12 @@ static const struct portenta_model *model;
 
 static void set_breakout_carrier_model()
 {
-	model = &portenta_x8_model_carrier_breakout;
+	model = &carrier_breakout;
 }
 
 static void set_max_carrier_model()
 {
-	model = &portenta_x8_model_carrier_max;
+	model = &carrier_max;
 }
 
 /**
@@ -447,7 +447,7 @@ int board_init(void)
 {
 	struct arm_smccc_res res;
 
-	model = &portenta_x8_model_carrier_unknown;
+	model = &carrier_unknown;
 
 #if defined(CONFIG_USB_TCPC) && !defined(CONFIG_SPL_BUILD)
 	setup_typec();
