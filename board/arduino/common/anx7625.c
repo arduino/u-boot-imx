@@ -874,7 +874,7 @@ static int anx7625_negotiate_pd(struct udevice *dev_typec, struct udevice *dev_p
 			if (valb < MIN_POWER_VALUE) {
 				printf("Power negotiation failure (5V @ %d [mA] below min setting 5V @ %d [mA])\n",
 					   RDO_POWER_UNIT_TO_MA(valb), MIN_POWER_VALUE_MA);;
-				printf("Please change adapter and retry.\n");
+				printf("Please change power adapter and/or USB-C hub and retry.\n");
 
 				while (1) {
 					led_red_on();
