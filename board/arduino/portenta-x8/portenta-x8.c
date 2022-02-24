@@ -443,6 +443,22 @@ int board_usb_cleanup(int index, enum usb_init_type init)
 #define DISPMIX				9
 #define MIPI				10
 
+#define FEC_RST_PAD       IMX_GPIO_NR(3, 6)
+
+static void setup_iomux_fec(void)
+{
+	printf("setup_iomux_fec\n");
+
+	/* reset PHY and ensure RX_DV/CLK125_EN is pulled high to enable TX_REF_CLK */
+	//imx_iomux_v3_setup_multiple_pads(fec1_rst_pads, ARRAY_SIZE(fec1_rst_pads));
+	gpio_request(FEC_RST_PAD, "fec1_rst");
+	gpio_direction_output(FEC_RST_PAD, 0);
+	udelay(500);
+	gpio_direction_output(FEC_RST_PAD, 1);
+	udelay(100000);
+	gpio_free(FEC_RST_PAD);
+}
+
 int board_init(void)
 {
 	struct arm_smccc_res res;
@@ -452,6 +468,8 @@ int board_init(void)
 #if defined(CONFIG_USB_TCPC) && !defined(CONFIG_SPL_BUILD)
 	setup_typec();
 #endif
+
+	setup_iomux_fec();
 
 #if IS_ENABLED(CONFIG_FEC_MXC)
 	setup_fec();
