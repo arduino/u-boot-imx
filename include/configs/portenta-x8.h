@@ -13,7 +13,13 @@
 #define CONFIG_SYS_BOOTM_LEN		SZ_64M
 #define CONFIG_SPL_MAX_SIZE		(148 * 1024)
 #define CONFIG_SYS_MONITOR_LEN		SZ_512K
-#define CONFIG_SYS_MMCSD_RAW_MODE_U_BOOT_USE_SECTOR
+
+#define CONFIG_SPL_MMC_SUPPORT
+#define CONFIG_SYS_MMCSD_FS_BOOT_PARTITION	1
+#define CONFIG_SPL_FS_FAT
+#define CONFIG_SPL_FS_LOAD_PAYLOAD_NAME		"u-boot.itb"
+
+//#define CONFIG_SYS_MMCSD_RAW_MODE_U_BOOT_USE_SECTOR
 /*
  * CONFIG_SECONDARY_BOOT_SECTOR_OFFSET was intended to be used as a compile time setting.
  * If CONFIG_SECONDARY_BOOT_RUNTIME_DETECTION is defined, then only use the base offset of 0x300 here.
@@ -227,8 +233,8 @@
 #define CONFIG_ENV_SPI_MODE		CONFIG_SF_DEFAULT_MODE
 #define CONFIG_ENV_SPI_MAX_HZ		CONFIG_SF_DEFAULT_SPEED
 #endif
-#define CONFIG_SYS_MMC_ENV_DEV		2   /* USDHC3 */
-#define CONFIG_MMCROOT			"/dev/mmcblk2p2"  /* USDHC3 */
+#define CONFIG_SYS_MMC_ENV_DEV		1   /* USDHC3 */
+#define CONFIG_MMCROOT			"/dev/mmcblk1p2"  /* USDHC3 */
 
 /* Size of malloc() pool */
 #define CONFIG_SYS_MALLOC_LEN		SZ_128M
