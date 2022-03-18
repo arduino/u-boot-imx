@@ -876,7 +876,8 @@ static int anx7625_negotiate_pd(struct udevice *dev_typec, struct udevice *dev_p
 					   RDO_POWER_UNIT_TO_MA(valb), MIN_POWER_VALUE_MA);;
 				printf("Please change power adapter and/or USB-C hub and retry.\n");
 
-				while (1) {
+				int i = 3;
+				while (i--) {
 					led_red_on();
 					udelay(200000);
 					led_red_off();
