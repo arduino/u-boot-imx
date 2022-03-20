@@ -733,6 +733,7 @@ static int anx7625_setup(struct udevice *dev_typec, struct udevice *dev_p0)
 						printf("%s: setup pd cap failed!\n", __func__);
 						return -EIO;
 					}
+				}
 				else {
 					vbus_off();
 				}
