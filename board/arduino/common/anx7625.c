@@ -433,7 +433,7 @@ static int anx7625_msg_recv(struct udevice *dev, enum anx7625_pd_msg_type *msg_t
 	return -ETIMEDOUT;
 }
 
-/* @TODO: @MS please consider below what I know from PD
+/* @TODO: confirm/discard below
  * DFP only mode: we always start as UFP(Rd), the other device is always DFP(Rp)
  * DRP mode: after connection we switch between Rp(DFP) and Rd(UFP) until we detect a valid connection. When
  * connection is detected, start either in UFP or DFP mode.
@@ -454,11 +454,11 @@ static int anx7625_setup_pd_cap(struct udevice *dev)
 	/* TODO: locate data in dts */
 
 	static uint32_t init_src_caps[1] = {
-		/*5000mV, 3A, Fixed */
+		/* 5000mV, 3A, Fixed */
 		PDO_FIXED(MAX_VOLTAGE_VALUE_MV, MAX_POWER_VALUE_MA, PDO_FIXED_DUAL_ROLE | PDO_FIXED_COMM_CAP | PDO_FIXED_DATA_SWAP),
 	};
 	static uint32_t init_snk_caps[3] = {
-		/*5000mV, 3A, Fixed */
+		/* 5000mV, 3A, Fixed */
 		PDO_FIXED(MAX_VOLTAGE_VALUE_MV, MAX_POWER_VALUE_MA, PDO_FIXED_DUAL_ROLE | PDO_FIXED_COMM_CAP | PDO_FIXED_DATA_SWAP),
 	};
 	static uint8_t init_dp_snk_ident[16] = {
@@ -693,11 +693,11 @@ static int anx7625_setup(struct udevice *dev_typec, struct udevice *dev_p0)
 
 				/*  @TODO: @MS Cannot see messages below with analyzer, seems not working */
 				/* Any message need to be sent after hw register configuration (anx7625_chip_register_init) */
-				/*ret = anx7625_setup_pd_cap(dev_p0);
+				ret = anx7625_setup_pd_cap(dev_p0);
 				if (ret) {
 					printf("%s: setup pd cap failed!\n", __func__);
 					return -EIO;
-				}*/
+				}
 
 				dm_i2c_read(dev_p0, OCM_FW_VERSION, &ver, 1);
 				dm_i2c_read(dev_p0, OCM_FW_REVERSION, &rver, 1);
