@@ -139,6 +139,7 @@ enum anx7625_pd_msg_type {
 #elif defined(CONFIG_TARGET_PORTENTA_X8)
 #define ANX7625_POWER_EN_PAD      IMX_GPIO_NR(4, 25)
 #define ANX7625_RESET_N_PAD       IMX_GPIO_NR(4, 26)
+#define ANX7625_VBUS_CTL_PAD      IMX_GPIO_NR(4, 13)
 #define LEDR_PAD                  IMX_GPIO_NR(5, 2)
 #define LEDG_PAD                  IMX_GPIO_NR(4, 28)
 #define LEDB_PAD                  IMX_GPIO_NR(5, 1)
@@ -162,6 +163,7 @@ static void request_gpios(void)
 
 	gpio_request(ANX7625_POWER_EN_PAD, "anx_power_en");
 	gpio_request(ANX7625_RESET_N_PAD, "anx_reset_n");
+	gpio_request(ANX7625_VBUS_CTL_PAD, "anx_vbus_ctl"); /* 0 = VBUS On, 1 = VBUS Off */
 }
 
 static void free_gpios(void)
@@ -172,6 +174,7 @@ static void free_gpios(void)
 
 	gpio_free(ANX7625_POWER_EN_PAD);
 	gpio_free(ANX7625_RESET_N_PAD);
+	gpio_free(ANX7625_VBUS_CTL_PAD);
 }
 
 static void leds_off(void)
@@ -179,6 +182,18 @@ static void leds_off(void)
 	gpio_direction_output(LEDR_PAD, 1);
 	gpio_direction_output(LEDG_PAD, 1);
 	gpio_direction_output(LEDB_PAD, 1);
+}
+
+static void vbus_off(void)
+{
+    printf("%s\n", __func__);
+    gpio_direction_output(ANX7625_VBUS_CTL_PAD, 1);
+}
+
+static void vbus_on(void)
+{
+    printf("%s\n", __func__);
+    gpio_direction_output(ANX7625_VBUS_CTL_PAD, 0);
 }
 
 #if defined(ANX7625_NEGOTIATE_PD) && defined(ANX7625_NEGOTIATE_ERROR)
@@ -623,8 +638,6 @@ static int anx7625_chip_register_init(struct udevice *dev_p0, struct udevice *de
 
 	anx7625_disable_auto_rdo(dev_p0);
 
-	//anx7625_disable_safe_5v_during_auto_rdo(dev_p0); /* @TODO: @MS not needed, safe 5V is 5V@500mA, we don't need to disable this choice just elaborate obtained power later on */
-
 	ret = dm_i2c_writeb(dev_p0, MAX_VOLTAGE_SETTING_REG, MAX_VOLTAGE_VALUE);
 	if (ret) {
 		printf("%s %d dm_i2c_write failed, err %d\n", __func__, __LINE__, ret);
@@ -666,6 +679,25 @@ static int anx7625_chip_register_init(struct udevice *dev_p0, struct udevice *de
 	return 0;
 }
 
+// This function is used to understand if we need to provide VBUS on USB-C
+// connector or not
+static int anx7625_is_power_provider(struct udevice *dev_p0)
+{
+	int ret = 0;
+	uint8_t sys_status = 0;
+	ret = dm_i2c_read(dev_p0, INTERFACE_STATUS, &sys_status, 1);
+	if (ret) {
+		printf("%s %d dm_i2c_read failed, err %d\n", __func__, __LINE__, ret);
+		return 0; // Conservative
+	}
+	else {
+		if (sys_status & (1<<3))
+			return 1;
+		else
+			return 0;
+	}
+}
+
 static int anx7625_setup(struct udevice *dev_typec, struct udevice *dev_p0)
 {
 	int ret = -ENODEV, retry_count, i;
@@ -691,12 +723,18 @@ static int anx7625_setup(struct udevice *dev_typec, struct udevice *dev_p0)
 				else
 					printf("%s: chip init registers succeeded.\n", __func__);
 
-				/*  @TODO: @MS Cannot see messages below with analyzer, seems not working */
-				/* Any message need to be sent after hw register configuration (anx7625_chip_register_init) */
-				ret = anx7625_setup_pd_cap(dev_p0);
-				if (ret) {
-					printf("%s: setup pd cap failed!\n", __func__);
-					return -EIO;
+				if (anx7625_is_power_provider(dev_p0)) {
+					vbus_on();
+
+					/*  @TODO: @MS Cannot see messages below with analyzer, seems not working */
+					/* Any message need to be sent after hw register configuration (anx7625_chip_register_init) */
+					ret = anx7625_setup_pd_cap(dev_p0);
+					if (ret) {
+						printf("%s: setup pd cap failed!\n", __func__);
+						return -EIO;
+					}
+				else {
+					vbus_off();
 				}
 
 				dm_i2c_read(dev_p0, OCM_FW_VERSION, &ver, 1);
